@@ -1,0 +1,4 @@
+name = SP Lidworden Formulier
+description = Leden kunnen zich aanmelden.
+dependencies[] = sprbs
+core = 7.x

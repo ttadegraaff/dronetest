@@ -1,0 +1,14 @@
+<?php
+
+function memberform_menu() {
+  $items=array();
+  $items['lid-worden'] = array(
+    'title' => 'Lid worden',
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('memberform_form'),
+    'file' => 'memberform_form.inc',
+    'access callback' => TRUE,
+  );
+  return $items;
+}

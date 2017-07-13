@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @file Creates database table to store memberform values.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function memberform_schema() {
+  $schema['memberform_storage'] = array(
+    'description' => 'Stores memberform values.',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'Submission id.',
+        'type' => 'serial',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'hash' => array(
+        'description' => 'Unique submission hash.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'form_values' => array(
+        'description' => 'The submission values (json encoded).',
+        'type' => 'blob',
+        'size' => 'normal',
+      ),
+    ),
+    'primary key' => array(
+      'sid',
+    ),
+    'unique keys' => array(
+      'hash' => array(
+        'hash',
+      ),
+    ),
+  );
+}
+
+/**
+ * Add memberform table.
+ */
+function memberform_update_7001() {
+  $table = array(
+    'description' => 'Stores memberform values.',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'Submission id.',
+        'type' => 'serial',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'hash' => array(
+        'description' => 'Unique submission hash.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'form_values' => array(
+        'description' => 'The submission values (json encoded).',
+        'type' => 'blob',
+        'size' => 'normal',
+      ),
+    ),
+    'primary key' => array(
+      'sid',
+    ),
+    'unique keys' => array(
+      'hash' => array(
+        'hash',
+      ),
+    ),
+  );
+  db_create_table('memberform_storage', $table);
+}
