@@ -1,7 +1,19 @@
 <?php
 
+/**
+ * @file Memberform module.
+ */
+
+/**
+ * Include form page definitions.
+ */
+module_load_include('inc', 'memberform', 'memberform_pages');
+
+/**
+ * Implements hook_menu().
+ */
 function memberform_menu() {
-  $items=array();
+  $items = array();
   $items['lid-worden'] = array(
     'title' => 'Lid worden',
     'type' => MENU_NORMAL_ITEM,
@@ -11,4 +23,21 @@ function memberform_menu() {
     'access callback' => TRUE,
   );
   return $items;
+}
+
+/**
+ * Counts number of page definitions (in memberform_pages.inc).
+ *
+ * @return int
+ *   Number of form pages.
+ */
+function memberform_pagecount() {
+  $number_of_pages = &drupal_static(__FUNCTION__);
+  if (!isset($number_of_pages)) {
+    $functions = get_defined_functions();
+    $functions = $functions['user'];
+    $page_functions = preg_grep('/^memberform_page_[0-9]+_form$/', $functions);
+    $number_of_pages = count($page_functions);
+  }
+  return $number_of_pages;
 }
