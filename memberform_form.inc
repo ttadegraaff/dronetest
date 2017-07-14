@@ -12,22 +12,21 @@ function memberform_form($form, &$form_state) {
   $last_page = 3;
 
   // Get storage from database if available.
-  dpm($_SESSION);
   if (isset($_SESSION['memberform']['sid'])) {
     $sid = $_SESSION['memberform']['sid'];
     $query = "SELECT form_values FROM {memberform_storage} WHERE sid = :sid";
     $result = db_query($query, array(':sid' => $sid))->fetchAssoc();
-    $form_state['storage'] = unserialize($result['form_values']);
-    $form_state['storage']['sid'] = $sid;
+    $storage = unserialize($result['form_values']);
+    $storage['sid'] = $sid;
   }
 
   // Set default page.
-  if (!isset($form_state['storage']['page'])) {
-    $form_state['storage']['page'] = 1;
+  if (!isset($storage['page'])) {
+    $storage['page'] = 1;
   }
 
-  $storage = $form_state['storage'];
-  dpm($storage);
+  // Store storage data in form.
+  $form_state['storage'] = $storage;
 
   // Create form based on form page.
   $form = array();
@@ -39,6 +38,7 @@ function memberform_form($form, &$form_state) {
     '#markup' => '<h3>Page ' . $storage['page'] . '</h3>',
   );
 
+  // Get pages forms.
   $form_callback = 'memberform_page_' . $storage['page'] . '_form';
   if (function_exists($form_callback)) {
     // Add page specific form elements.
@@ -53,6 +53,7 @@ function memberform_form($form, &$form_state) {
     }
   }
 
+  // Add submit buttons.
   if ($storage['page'] > 1) {
     $form['previous_page'] = array(
       '#type' => 'submit',
@@ -74,6 +75,14 @@ function memberform_form($form, &$form_state) {
         'wrapper' => 'memberform_form_wrapper',
         'callback' => 'memberform_ajax_callback',
       ),
+    );
+  }
+
+  if ($storage['page'] == $last_page) {
+    $form['finish'] = array(
+      '#type' => 'submit',
+      '#value' => 'Insturen',
+      '#name' => 'finish',
     );
   }
   return $form;
@@ -152,7 +161,13 @@ function memberform_form_submit($form, &$form_state) {
   // Store submission id in session.
   $_SESSION['memberform']['sid'] = $sid;
 
-  $form_state['rebuild'] = TRUE;
+  // Rebuild form when not finished.
+  if ($trigger !== 'finish') {
+    $form_state['rebuild'] = TRUE;
+  }
+  else {
+    unset($_SESSION['memberform']['sid']);
+  }
 }
 
 /**
