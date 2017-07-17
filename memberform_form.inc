@@ -9,6 +9,7 @@
  * Form constructor for the member form.
  */
 function memberform_form($form, &$form_state) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
 
   // Get storage from database if available.
   if (isset($_SESSION['memberform']['sid'])) {
@@ -48,16 +49,22 @@ function memberform_form($form, &$form_state) {
   $form_callback = 'memberform_page_' . $storage['page'] . '_form';
   if (function_exists($form_callback)) {
     // Add page specific form elements.
-    $form_callback($form);
-    // Add default values and error messages.
+    $form_callback($form, $storage, $values);
+    // Modify form elements.
     foreach ($form as $key => $item) {
       if (preg_match('/^page_' . $storage['page'] . '_[a-z0-9_]+$/', $key, $matches)) {
+        // Add default values.
         if (isset($storage['values'][$storage['page']][$key])) {
           $form[$key]['#default_value'] = $storage['values'][$storage['page']][$key];
         }
+        // Add error messages.
         if (isset($form_state['form_errors'][$key])) {
-          $form[$key]['#prefix'] = theme('status_messages', drupal_set_message($form_state['form_errors'][$key], 'error'));
+          $form[$key]['#prefix'] = '<div class="memberform validation-error"><div class="messages error">' . $form_state['form_errors'][$key] . '</div>';
         }
+        else {
+          $form[$key]['#prefix'] = '<div class="memberform">';
+        }
+        $form[$key]['#suffix'] = '</div>';
       }
     }
   }

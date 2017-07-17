@@ -26,7 +26,7 @@ function memberform_settings($variable_name) {
 /**
  * Form definition for memberform page 1.
  */
-function memberform_page_1_form(&$form) {
+function memberform_page_1_form(&$form, $storage, $values) {
   $form['page_1_test_1'] = array(
     '#type' => 'checkbox',
     '#title' => 'Zet een vinkje',
@@ -34,23 +34,43 @@ function memberform_page_1_form(&$form) {
   $form['page_1_test_2'] = array(
     '#type' => 'checkbox',
     '#title' => 'Zet een vinkje',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="page_1_test_1"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 }
 
 /**
  * Form definition for memberform page 2.
  */
-function memberform_page_2_form(&$form) {
-  $form['page_2_test'] = array(
+function memberform_page_2_form(&$form, $storage, $values) {
+
+  $form['page_2_test_1'] = array(
     '#type' => 'checkbox',
     '#title' => 'Zet een vinkje',
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+
+  $form['page_2_test_2'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Zet een vinkje',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="page_2_test_1"]' => array('checked' => TRUE),
+      ),
+    ),
   );
 }
 
 /**
  * Form definition for memberform page 3.
  */
-function memberform_page_3_form(&$form) {
+function memberform_page_3_form(&$form, $storage, $values) {
   $form['page_3_test'] = array(
     '#type' => 'checkbox',
     '#title' => 'Zet een vinkje',
@@ -74,8 +94,11 @@ function memberform_page_form_validate($form, &$form_state) {
       break;
 
     case 2:
-      if (empty($values['page_2_test'])) {
-        form_set_error('page_2_test', 'Je kan niet verder zonder een vinkje!');
+      if (empty($values['page_2_test_1'])) {
+        form_set_error('page_2_test_1', 'Je kan niet verder zonder een vinkje!');
+      }
+      if (empty($values['page_2_test_2'])) {
+        form_set_error('page_2_test_2', 'Je kan niet verder zonder een vinkje!');
       }
       break;
 
