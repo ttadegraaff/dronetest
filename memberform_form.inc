@@ -21,8 +21,9 @@ function memberform_form($form, &$form_state) {
   }
 
   // Set default page.
-  if (!isset($storage['page'])) {
-    $storage['page'] = 1;
+  if (!isset($storage['current_page'])) {
+    $storage['current_page'] = 'start';
+    $storage['step'] = 1;
   }
 
   // Store storage data in form.
@@ -42,20 +43,20 @@ function memberform_form($form, &$form_state) {
   );
 
   $form['progress'] = array(
-    '#markup' => '<h3>Page ' . $storage['page'] . '</h3>',
+    '#markup' => '<h3>Stap ' . $storage['step'] . '</h3>',
   );
 
   // Get pages forms.
-  $form_callback = 'memberform_page_' . $storage['page'] . '_form';
+  $form_callback = 'memberform_page_' . $storage['current_page'] . '_form';
   if (function_exists($form_callback)) {
     // Add page specific form elements.
     $form_callback($form, $storage, $values);
     // Modify form elements.
     foreach ($form as $key => $item) {
-      if (preg_match('/^page_' . $storage['page'] . '_[a-z0-9_]+$/', $key, $matches)) {
+      if (preg_match('/^page_' . $storage['current_page'] . '_[a-z0-9_]+$/', $key, $matches)) {
         // Add default values.
-        if (isset($storage['values'][$storage['page']][$key])) {
-          $form[$key]['#default_value'] = $storage['values'][$storage['page']][$key];
+        if (isset($storage['values'][$storage['current_page']][$key])) {
+          $form[$key]['#default_value'] = $storage['values'][$storage['current_page']][$key];
         }
         // Add error messages.
         if (isset($form_state['form_errors'][$key])) {
@@ -69,8 +70,8 @@ function memberform_form($form, &$form_state) {
     }
   }
 
-  // Add submit buttons.
-  if ($storage['page'] > 1) {
+  // Add action buttons.
+  if ($storage['step'] > 1) {
     $form['previous_page'] = array(
       '#type' => 'submit',
       '#value' => 'Vorige',
@@ -82,7 +83,14 @@ function memberform_form($form, &$form_state) {
     );
   }
 
-  if ($storage['page'] < memberform_pagecount()) {
+  if (!empty($storage['last_page'])) {
+    $form['finish'] = array(
+      '#type' => 'submit',
+      '#value' => 'Insturen',
+      '#name' => 'finish',
+    );
+  }
+  else {
     $form['next_page'] = array(
       '#type' => 'submit',
       '#value' => 'Volgende',
@@ -94,13 +102,6 @@ function memberform_form($form, &$form_state) {
     );
   }
 
-  if ($storage['page'] == memberform_pagecount()) {
-    $form['finish'] = array(
-      '#type' => 'submit',
-      '#value' => 'Insturen',
-      '#name' => 'finish',
-    );
-  }
   return $form;
 }
 
@@ -117,21 +118,24 @@ function memberform_form_submit($form, &$form_state) {
 
   $values = $form_state['values'];
   $storage = &$form_state['storage'];
-  $sid = $storage['sid'];
 
   // Store values.
-  $storage['values'][$storage['page']] = $values;
+  $storage['values'][$storage['current_page']] = $values;
 
   // Process previous, next page.
   $trigger = $form_state['triggering_element']['#name'];
 
   switch ($trigger) {
     case 'previous_page':
-      $storage['page']--;
+      $storage['step']--;
+      $storage['current_page'] = array_pop($storage['page_history']);
+      unset($storage['last_page']);
       break;
 
     case 'next_page':
-      $storage['page']++;
+      $storage['step']++;
+      $storage['page_history'][] = $storage['current_page'];
+      $storage['current_page'] = $storage['next_page'];
       break;
   }
 
@@ -143,6 +147,7 @@ function memberform_form_submit($form, &$form_state) {
       ))
       ->condition('sid', $storage['sid'])
       ->execute();
+    $sid = $storage['sid'];
   }
   else {
     // Insert new database storage.

@@ -3,77 +3,56 @@
 /**
  * @file Form definitions for memberform pages.
  *
- *   Define a function like 'memberform_page_x_form' where x is to be
- *   substituted with the page number to add a new form page.
+ *   Define page form functions like 'memberform_page_x_form' where x is to be
+ *   substituted with the page name used in $storage['current_page'] and
+ *   $storage['next_page'].
+ *
+ *   Example:
+ *
+ *   function memberform_page_start_form(&$form, $storage, $values) {
+ *     $form['page_start_choice'] = array(
+ *       '#type' => 'radios',
+ *       '#title' => 'Maak een keuze',
+ *       '#options' => array('colors' => 'Kleuren', 'tastes' => 'Smaken'),
+ *       '#required' => TRUE,
+ *     );
+ *   }
  */
 
 /**
- * Form settings.
- *
- * @param string $variable_name
- *   Name of the variable to return.
- *
- * @return Not defined
- *   Returns variable value.
+ * Form definition for memberform page start.
  */
-function memberform_settings($variable_name) {
-  $settings = array(
-    'test' => 'test',
-  );
-  return $settings[$variable_name];
-}
-
-/**
- * Form definition for memberform page 1.
- */
-function memberform_page_1_form(&$form, $storage, $values) {
-  $form['page_1_test_1'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Zet een vinkje',
-  );
-  $form['page_1_test_2'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Zet een vinkje',
-    '#states' => array(
-      'visible' => array(
-        ':input[name="page_1_test_1"]' => array('checked' => TRUE),
-      ),
-    ),
+function memberform_page_start_form(&$form, $storage, $values) {
+  $form['page_start_choice'] = array(
+    '#type' => 'radios',
+    '#title' => 'Maak een keuze',
+    '#options' => array('colors' => 'Kleuren', 'tastes' => 'Smaken'),
+    '#required' => TRUE,
   );
 }
 
 /**
  * Form definition for memberform page 2.
  */
-function memberform_page_2_form(&$form, $storage, $values) {
+function memberform_page_colors_form(&$form, $storage, $values) {
 
-  $form['page_2_test_1'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Zet een vinkje',
-    '#ajax' => array(
-      'wrapper' => 'memberform_form_wrapper',
-      'callback' => 'memberform_ajax_callback',
-    ),
-  );
-
-  $form['page_2_test_2'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Zet een vinkje',
-    '#states' => array(
-      'visible' => array(
-        ':input[name="page_2_test_1"]' => array('checked' => TRUE),
-      ),
-    ),
+  $form['page_colors_test'] = array(
+    '#type' => 'radios',
+    '#title' => 'Wat is je favoriete kleur?',
+    '#options' => array('Groen', 'Rood', 'Blauw', 'Geel'),
+    '#required' => TRUE,
   );
 }
 
 /**
  * Form definition for memberform page 3.
  */
-function memberform_page_3_form(&$form, $storage, $values) {
-  $form['page_3_test'] = array(
-    '#type' => 'checkbox',
-    '#title' => 'Zet een vinkje',
+function memberform_page_tastes_form(&$form, $storage, $values) {
+  $form['page_tastes_test'] = array(
+    '#type' => 'radios',
+    '#title' => 'Wat is je favoriete smaak?',
+    '#options' => array('Zuur', 'Zoet', 'Bitter', 'Zout'),
+    '#required' => TRUE,
   );
 }
 
@@ -83,29 +62,17 @@ function memberform_page_3_form(&$form, $storage, $values) {
 function memberform_page_form_validate($form, &$form_state) {
   $values = $form_state['values'];
   $storage = $form_state['storage'];
-  switch ($storage['page']) {
-    case 1:
-      if (empty($values['page_1_test_1'])) {
-        form_set_error('page_1_test_1', 'Je kan niet verder zonder een vinkje!');
-      }
-      if (empty($values['page_1_test_2'])) {
-        form_set_error('page_1_test_2', 'Je kan niet verder zonder een vinkje!');
+  switch ($storage['current_page']) {
+    case 'start':
+      break;
+
+    case 'colors':
+      if (in_array($values['page_colors_test'], array(0, 1))) {
+        form_set_error('page_colors_test', 'Testfout!');
       }
       break;
 
-    case 2:
-      if (empty($values['page_2_test_1'])) {
-        form_set_error('page_2_test_1', 'Je kan niet verder zonder een vinkje!');
-      }
-      if (empty($values['page_2_test_2'])) {
-        form_set_error('page_2_test_2', 'Je kan niet verder zonder een vinkje!');
-      }
-      break;
-
-    case 3:
-      if (empty($values['page_3_test'])) {
-        form_set_error('page_3_test', 'Je kan niet verder zonder een vinkje!');
-      }
+    case 'tastes':
       break;
   }
 
@@ -116,6 +83,9 @@ function memberform_page_form_validate($form, &$form_state) {
 
 /**
  * Submit function for memberform pages.
+ *
+ * Set $storage['next_page'] to value of next page, or
+ * set $storage['last_page'] to TRUE;
  */
 function memberform_page_form_submit($form, &$form_state) {
   $values = $form_state['values'];
@@ -125,7 +95,18 @@ function memberform_page_form_submit($form, &$form_state) {
   $trigger = $form_state['triggering_element']['#name'];
 
   switch ($trigger) {
-    case 'xxx':
+    case 'next_page':
+      switch ($storage['current_page']) {
+        case 'start':
+          $storage['next_page'] = $values['page_start_choice'];
+          $storage['last_page'] = TRUE;
+          break;
+
+        case 'colors':
+        case 'tastes':
+          drupal_set_message('Finished!');
+          break;
+      }
       break;
   }
 }
