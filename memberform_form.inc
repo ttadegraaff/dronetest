@@ -20,6 +20,7 @@ function memberform_form($form, &$form_state) {
 
   // Store storage data in form.
   $form_state['storage'] = $storage;
+  dpm($storage);
 
   // Create form based on form page.
   $form = array(
@@ -66,15 +67,18 @@ function memberform_form($form, &$form_state) {
 
   // Add action buttons.
   if ($storage['step'] > 1) {
-    $form['previous_page'] = array(
-      '#type' => 'submit',
-      '#value' => 'Vorige',
-      '#name' => 'previous_page',
-      '#ajax' => array(
-        'wrapper' => 'memberform_form_wrapper',
-        'callback' => 'memberform_ajax_callback',
-      ),
-    );
+    $no_back_pages = memberform_settings('no_back_pages');
+    if (!in_array($storage['current_page'], $no_back_pages)) {
+      $form['previous_page'] = array(
+        '#type' => 'submit',
+        '#value' => 'Vorige',
+        '#name' => 'previous_page',
+        '#ajax' => array(
+          'wrapper' => 'memberform_form_wrapper',
+          'callback' => 'memberform_ajax_callback',
+        ),
+      );
+    }
   }
 
   if (!empty($storage['last_page'])) {
@@ -124,6 +128,7 @@ function memberform_form_submit($form, &$form_state) {
       $storage['step']--;
       $storage['current_page'] = array_pop($storage['page_history']);
       unset($storage['last_page']);
+      unset($storage['next_page']);
       break;
 
     case 'next_page':

@@ -20,58 +20,106 @@
  */
 
 /**
- * Form definition for memberform page start.
+ * Form settings.
+ *
+ * @param string $variable_name
+ *   Name of the variable to return.
+ *
+ * @return Not defined
+ *   Returns variable value.
+ */
+function memberform_settings($variable_name) {
+  $settings = array(
+    'no_back_pages' => array(
+    ),
+  );
+  return $settings[$variable_name];
+}
+
+/**
+ * Form definition for start page.
  */
 function memberform_page_start_form(&$form, $storage, $values) {
-  $form['page_start_choice'] = array(
-    '#type' => 'radios',
-    '#title' => 'Maak een keuze',
-    '#options' => array('colors' => 'Kleuren', 'tastes' => 'Smaken'),
-    '#required' => TRUE,
+  $form['page_start_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Naam',
+  );
+
+  $form['page_start_mail'] = array(
+    '#type' => 'textfield',
+    '#title' => 'E-mailadres',
+  );
+
+  $form['page_start_phone'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Telefoonnummer',
   );
 }
 
 /**
- * Form definition for memberform page 2.
+ * Form definition for thanks phone page.
  */
-function memberform_page_colors_form(&$form, $storage, $values) {
-  $form['page_colors_test'] = array(
-    '#type' => 'radios',
-    '#title' => 'Wat is je favoriete kleur?',
-    '#options' => array('Groen', 'Rood', 'Blauw', 'Geel'),
-    '#required' => TRUE,
+function memberform_page_thanks_phone_form(&$form, $storage, $values) {
+  $form['page_thanks_phone_feedback'] = array(
+    '#markup' => '<p>Bedankt voor het aanmelden! We nemen binnenkort contact met je op om het lidmaatschap af te ronden.</p><p>Ga verder als je zelf je inschrijving wilt afronden.</p>',
   );
 }
 
 /**
- * Form definition for memberform page 3.
+ * Form definition for person details page.
  */
-function memberform_page_tastes_form(&$form, $storage, $values) {
-  $form['page_tastes_test'] = array(
-    '#type' => 'radios',
-    '#title' => 'Wat is je favoriete smaak?',
-    '#options' => array('Zuur', 'Zoet', 'Bitter', 'Zout'),
-    '#required' => TRUE,
+function memberform_page_person_details_form(&$form, $storage, $values) {
+  $form['page_person_details_first_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Voornaam',
   );
+
+  $form['page_person_details_middle_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Tussenvoegsel',
+  );
+
+  $form['page_person_details_last_name'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Achternaam',
+  );
+
+  $form['page_person_details_birth_date'] = array(
+    '#title'           => 'Geboortedatum',
+    '#type'            => 'date_select',
+    '#date_format'     => 'd-m-Y',
+    '#date_year_range' => '-100:-15',
+    '#required'        => TRUE,
+  );
+
 }
 
 /**
  * Validation for member form pages.
  */
 function memberform_page_form_validate($form, &$form_state) {
+
+  // Process trigger.
+  $trigger = $form_state['triggering_element']['#name'];
+  if ($trigger == 'previous_page') {
+    // Do not validate.
+    return;
+  }
+
   $values = $form_state['values'];
   $storage = $form_state['storage'];
+
   switch ($storage['current_page']) {
     case 'start':
+      drupal_set_message('Validated start');
       break;
 
-    case 'colors':
-      if (in_array($values['page_colors_test'], array(0, 1))) {
-        form_set_error('page_colors_test', 'Nah.. dat kan echt niet!');
-      }
+    case 'thanks_phone':
+      drupal_set_message('Validated thanks_phone');
       break;
 
-    case 'tastes':
+    case 'person_details':
+      drupal_set_message('Validated person_details');
       break;
   }
 
@@ -101,22 +149,22 @@ function memberform_page_form_submit($form, &$form_state) {
     case 'next_page':
       switch ($storage['current_page']) {
         case 'start':
-          $storage['next_page'] = $values['page_start_choice'];
-          $storage['last_page'] = TRUE;
-          break;
-
-        case 'colors':
-        case 'tastes':
-          drupal_set_message('Finished!');
+          if (empty($values['page_start_phone'])) {
+            $storage['next_page'] = 'person_details';
+          }
+          else {
+            $storage['next_page'] = 'thanks_phone';
+          }
           break;
       }
       break;
 
     case 'finish':
       switch ($storage['current_page']) {
-        case 'colors':
-        case 'tastes':
-          drupal_set_message('Finished!');
+        case 'thanks_phone':
+          break;
+
+        case 'person_details':
           break;
       }
       break;
