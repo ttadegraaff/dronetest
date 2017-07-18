@@ -22,15 +22,20 @@
 /**
  * Form settings.
  *
+ * Add 'no_back_pages' variable (array) with page names of pages that should not
+ * show a back button.
+ *
  * @param string $variable_name
  *   Name of the variable to return.
  *
- * @return Not defined
+ * @return Variable value.
  *   Returns variable value.
  */
 function memberform_settings($variable_name) {
   $settings = array(
     'no_back_pages' => array(
+      //'thanks_phone',
+      //'person_details',
     ),
   );
   return $settings[$variable_name];
@@ -72,6 +77,7 @@ function memberform_page_person_details_form(&$form, $storage, $values) {
   $form['page_person_details_first_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Voornaam',
+    '#required' => TRUE,
   );
 
   $form['page_person_details_middle_name'] = array(
@@ -82,6 +88,7 @@ function memberform_page_person_details_form(&$form, $storage, $values) {
   $form['page_person_details_last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Achternaam',
+    '#required' => TRUE,
   );
 
   $form['page_person_details_birth_date'] = array(
@@ -89,7 +96,7 @@ function memberform_page_person_details_form(&$form, $storage, $values) {
     '#type'            => 'date_select',
     '#date_format'     => 'd-m-Y',
     '#date_year_range' => '-100:-15',
-    '#required'        => TRUE,
+    '#required' => TRUE,
   );
 
 }
@@ -101,26 +108,24 @@ function memberform_page_form_validate($form, &$form_state) {
 
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
-  if ($trigger == 'previous_page') {
-    // Do not validate.
-    return;
-  }
+  if ($trigger != 'previous_page') {
 
-  $values = $form_state['values'];
-  $storage = $form_state['storage'];
+    $values = $form_state['values'];
+    $storage = $form_state['storage'];
 
-  switch ($storage['current_page']) {
-    case 'start':
-      drupal_set_message('Validated start');
-      break;
+    switch ($storage['current_page']) {
+      case 'start':
+        drupal_set_message('Validated start');
+        break;
 
-    case 'thanks_phone':
-      drupal_set_message('Validated thanks_phone');
-      break;
+      case 'thanks_phone':
+        drupal_set_message('Validated thanks_phone');
+        break;
 
-    case 'person_details':
-      drupal_set_message('Validated person_details');
-      break;
+      case 'person_details':
+        drupal_set_message('Validated person_details');
+        break;
+    }
   }
 
   // Do no remove these lines.

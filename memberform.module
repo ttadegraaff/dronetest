@@ -7,7 +7,9 @@
 /**
  * Include form page definitions.
  */
+module_load_include('inc', 'memberform', 'memberform_helpers');
 module_load_include('inc', 'memberform', 'memberform_pages');
+module_load_include('inc', 'memberform', 'memberform_pages_helpers');
 
 /**
  * Implements hook_menu().
