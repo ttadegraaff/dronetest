@@ -35,7 +35,6 @@ function memberform_page_start_form(&$form, $storage, $values) {
  * Form definition for memberform page 2.
  */
 function memberform_page_colors_form(&$form, $storage, $values) {
-
   $form['page_colors_test'] = array(
     '#type' => 'radios',
     '#title' => 'Wat is je favoriete kleur?',
@@ -68,7 +67,7 @@ function memberform_page_form_validate($form, &$form_state) {
 
     case 'colors':
       if (in_array($values['page_colors_test'], array(0, 1))) {
-        form_set_error('page_colors_test', 'Testfout!');
+        form_set_error('page_colors_test', 'Nah.. dat kan echt niet!');
       }
       break;
 
@@ -84,10 +83,14 @@ function memberform_page_form_validate($form, &$form_state) {
 /**
  * Submit function for memberform pages.
  *
- * Set $storage['next_page'] to value of next page, or
- * set $storage['last_page'] to TRUE;
+ * Set $storage['next_page'] to value of next page, and if next page is
+ * the last one, set $storage['last_page'] to TRUE;
  */
 function memberform_page_form_submit($form, &$form_state) {
+  if (isset($form_state['form_errors'])) {
+    return;
+  }
+
   $values = $form_state['values'];
   $storage = &$form_state['storage'];
 
@@ -102,6 +105,15 @@ function memberform_page_form_submit($form, &$form_state) {
           $storage['last_page'] = TRUE;
           break;
 
+        case 'colors':
+        case 'tastes':
+          drupal_set_message('Finished!');
+          break;
+      }
+      break;
+
+    case 'finish':
+      switch ($storage['current_page']) {
         case 'colors':
         case 'tastes':
           drupal_set_message('Finished!');

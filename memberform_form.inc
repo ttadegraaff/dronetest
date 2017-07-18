@@ -10,15 +10,7 @@
  */
 function memberform_form($form, &$form_state) {
   $values = isset($form_state['values']) ? $form_state['values'] : array();
-
-  // Get storage from database if available.
-  if (isset($_SESSION['memberform']['sid'])) {
-    $sid = $_SESSION['memberform']['sid'];
-    $query = "SELECT form_values FROM {memberform_storage} WHERE sid = :sid";
-    $result = db_query($query, array(':sid' => $sid))->fetchAssoc();
-    $storage = unserialize($result['form_values']);
-    $storage['sid'] = $sid;
-  }
+  $storage = memberform_get_storage();
 
   // Set default page.
   if (!isset($storage['current_page'])) {
@@ -49,8 +41,10 @@ function memberform_form($form, &$form_state) {
   // Get pages forms.
   $form_callback = 'memberform_page_' . $storage['current_page'] . '_form';
   if (function_exists($form_callback)) {
+
     // Add page specific form elements.
     $form_callback($form, $storage, $values);
+
     // Modify form elements.
     foreach ($form as $key => $item) {
       if (preg_match('/^page_' . $storage['current_page'] . '_[a-z0-9_]+$/', $key, $matches)) {
@@ -139,28 +133,11 @@ function memberform_form_submit($form, &$form_state) {
       break;
   }
 
-  if (isset($storage['sid'])) {
-    // Update database storage.
-    db_update('memberform_storage')
-      ->fields(array(
-        'form_values' => serialize($storage),
-      ))
-      ->condition('sid', $storage['sid'])
-      ->execute();
-    $sid = $storage['sid'];
-  }
-  else {
-    // Insert new database storage.
-    $sid = db_insert('memberform_storage')
-      ->fields(array(
-      'hash' => md5(drupal_random_bytes(32)),
-      'form_values' => serialize($storage),
-      ))
-      ->execute();
-  }
+  // Store form data in database.
+  memberform_store_form_data($storage);
 
   // Store submission id in session.
-  $_SESSION['memberform']['sid'] = $sid;
+  $_SESSION['memberform']['sid'] = $storage['sid'];
 
   // Rebuild form when not finished.
   if ($trigger !== 'finish') {
@@ -203,6 +180,60 @@ function memberform_remove_errors(&$form_state) {
     // Make sure that each error should be applied to the field.
     foreach (array_keys($errors) as $field) {
       unset($errors[$field]);
+    }
+  }
+}
+
+/**
+ * Gets stored form data from database.
+ *
+ * @param int $sid
+ *   Form submission id.
+ *
+ * @return array $storage
+ *   Stored form data.
+ */
+function memberform_get_storage($sid = NULL) {
+  $storage = array();
+  if (!isset($sid) && isset($_SESSION['memberform']['sid'])) {
+    $sid = $_SESSION['memberform']['sid'];
+  }
+
+  if (isset($sid)) {
+    // Get storage from database if available.
+    $query = "SELECT form_values FROM {memberform_storage} WHERE sid = :sid";
+    $result = db_query($query, array(':sid' => $sid))->fetchAssoc();
+    $storage = unserialize($result['form_values']);
+    $storage['sid'] = $sid;
+  }
+  return $storage;
+}
+
+/**
+ * Stores database storage variable in database.
+ *
+ * @param array $storage
+ *   Database storage variable.
+ */
+function memberform_store_form_data(array &$storage = NULL) {
+  if (isset($storage)) {
+    if (isset($storage['sid'])) {
+      // Update database storage.
+      db_update('memberform_storage')
+        ->fields(array(
+          'form_values' => serialize($storage),
+        ))
+        ->condition('sid', $storage['sid'])
+        ->execute();
+    }
+    else {
+      // Insert new database storage.
+      $storage['sid'] = db_insert('memberform_storage')
+        ->fields(array(
+          'hash' => md5(drupal_random_bytes(32)),
+          'form_values' => serialize($storage),
+        ))
+        ->execute();
     }
   }
 }
