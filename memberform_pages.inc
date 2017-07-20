@@ -48,9 +48,10 @@ function memberform_page_start_form(&$form, $storage, $values) {
   $form['page_start_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Naam',
+    '#required' => TRUE,
   );
 
-  $form['page_start_mail'] = array(
+  $form['page_start_email'] = array(
     '#type' => 'textfield',
     '#title' => 'E-mailadres',
   );
@@ -102,6 +103,94 @@ function memberform_page_person_details_form(&$form, $storage, $values) {
 }
 
 /**
+ * Form definition for address page.
+ */
+function memberform_page_address_form(&$form, $storage, $values) {
+  include_once DRUPAL_ROOT . '/includes/locale.inc';
+  $countries = country_get_list();
+  $form['page_address_country'] = array(
+    '#title'         => 'Land',
+    '#type'          => 'select',
+    '#options'       => $countries,
+    '#required'      => TRUE,
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+
+  if (!empty($storage['values']['address']['page_address_country'])) {
+    if ($storage['values']['address']['page_address_country'] === 'NL') {
+      // Dutch address.
+      $form['page_address_postal_code'] = array(
+        '#title'         => 'Postcode',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+        '#ajax' => array(
+          'wrapper' => 'memberform_form_wrapper',
+          'callback' => 'memberform_ajax_callback',
+        ),
+      );
+      $form['page_address_house_number'] = array(
+        '#title'         => 'Huisnummer',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+      $form['page_address_house_number_addition'] = array(
+        '#title'         => 'Huisnummer toevoeging',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+      if (empty($storage['values']['address'])) {
+        $default = 'xxxxx';
+      }
+      else {
+        $default = 'works';
+      }
+      $form['page_address_street'] = array(
+        '#title'         => 'Straat',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+        '#value' => $default,
+      );
+      $form['page_address_locality'] = array(
+        '#title'         => 'Plaats',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+    }
+    else {
+      // International address.
+      $form['page_address_street'] = array(
+        '#title'         => 'Straat',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+      $form['page_address_house_number'] = array(
+        '#title'         => 'Huisnummer',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+      $form['page_address_house_number_addition'] = array(
+        '#title'         => 'Huisnummer toevoeging',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+      $form['page_address_postal_code'] = array(
+        '#title'         => 'Postcode',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+      $form['page_address_locality'] = array(
+        '#title'         => 'Plaats',
+        '#type'          => 'textfield',
+        '#required'      => TRUE,
+      );
+    }
+  }
+}
+
+/**
  * Validation for member form pages.
  */
 function memberform_page_form_validate($form, &$form_state) {
@@ -124,6 +213,10 @@ function memberform_page_form_validate($form, &$form_state) {
 
       case 'person_details':
         drupal_set_message('Validated person_details');
+        break;
+
+      case 'address':
+        drupal_set_message('Validated address');
         break;
     }
   }
@@ -154,6 +247,21 @@ function memberform_page_form_submit($form, &$form_state) {
     case 'next_page':
       switch ($storage['current_page']) {
         case 'start':
+          // Store split name values.
+          if (empty($storage['values']['person_details']['page_person_details_last_name'])) {
+            $split_name = memberform_split_name($values['page_start_name']);
+            $name_types = array(
+              'first_name',
+              'middle_name',
+              'last_name',
+            );
+            foreach ($name_types as $name_type) {
+              if (!empty($split_name[$name_type])) {
+                $storage['values']['person_details']['page_person_details_' . $name_type] = $split_name[$name_type];
+              }
+            }
+          }
+          // Set form navigation.
           if (empty($values['page_start_phone'])) {
             $storage['next_page'] = 'person_details';
           }
@@ -161,15 +269,17 @@ function memberform_page_form_submit($form, &$form_state) {
             $storage['next_page'] = 'thanks_phone';
           }
           break;
+
+        case 'person_details':
+        case 'thanks_phone':
+          $storage['next_page'] = 'address';
+          break;
       }
       break;
 
     case 'finish':
       switch ($storage['current_page']) {
-        case 'thanks_phone':
-          break;
-
-        case 'person_details':
+        case 'xxxx':
           break;
       }
       break;

@@ -21,6 +21,7 @@ function memberform_form($form, &$form_state) {
   // Store storage data in form.
   $form_state['storage'] = $storage;
   $storage = &$form_state['storage'];
+  dpm($storage);
 
   // Create form based on form page.
   $form = array(
