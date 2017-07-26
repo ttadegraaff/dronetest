@@ -25,6 +25,8 @@
  * Add 'no_back_pages' variable (array) with page names of pages that should not
  * show a back button.
  *
+ * Add 'titles' array with page name to page titles.
+ *
  * @param string $variable_name
  *   Name of the variable to return.
  *
@@ -34,8 +36,18 @@
 function memberform_settings($variable_name) {
   $settings = array(
     'no_back_pages' => array(
-      //'thanks_phone',
+      //'quickfinish',
       //'person_details',
+    ),
+    'titles' => array(
+      'start' => 'Contactgegevens',
+      'quickfinish' => 'Gelukt!',
+      'person_details' => 'Persoonsgegevens',
+      'red' => 'ROOD lidmaatschap',
+      'address' => 'Adresgegevens',
+      'contribution' => 'Persoonlijke bijdrage',
+      'gift' => 'Welkomstgeschenk',
+      'summary' => 'Controleer uw gegevens',
     ),
   );
   return $settings[$variable_name];
@@ -44,7 +56,7 @@ function memberform_settings($variable_name) {
 /**
  * Form definition for start page.
  */
-function memberform_page_start_form(&$form, $storage, $values) {
+function memberform_page_start_form(&$form, &$form_state) {
   $form['page_start_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Naam',
@@ -65,31 +77,52 @@ function memberform_page_start_form(&$form, $storage, $values) {
 /**
  * Form definition for thanks phone page.
  */
-function memberform_page_thanks_phone_form(&$form, $storage, $values) {
-  $form['page_thanks_phone_feedback'] = array(
-    '#markup' => '<p>Bedankt voor het aanmelden! We nemen binnenkort contact met je op om het lidmaatschap af te ronden.</p><p>Ga verder als je zelf je inschrijving wilt afronden.</p>',
+function memberform_page_quickfinish_form(&$form, &$form_state) {
+  $form['page_quickfinish_feedback'] = array(
+    '#markup' => '<p>We nemen binnenkort contact met je op om het lidmaatschap af te ronden.</p><p>Ga verder als je zelf je inschrijving wilt afronden.</p>',
   );
 }
 
 /**
  * Form definition for person details page.
  */
-function memberform_page_person_details_form(&$form, $storage, $values) {
+function memberform_page_person_details_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+
+  // Split name given in start page.
+  $parts = array('first_name', 'middle_name', 'last_name');
+  if (empty($storage['values']['person_details']['page_person_details_last_name'])) {
+    // Prefill name parts.
+    $split_name = memberform_split_name($storage['values']['start']['page_start_name']);
+    foreach ($parts as $part) {
+      $$part = isset($split_name[$part]) ? $split_name[$part] : '';
+    }
+  }
+  else {
+    // Show stored name parts.
+    foreach ($parts as $part) {
+      $$part = isset($storage['values']['person_details']['page_person_details_' . $part]) ? $storage['values']['person_details']['page_person_details_' . $part] : '';
+    }
+  }
+
   $form['page_person_details_first_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Voornaam',
     '#required' => TRUE,
+    '#value' => $first_name,
   );
 
   $form['page_person_details_middle_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Tussenvoegsel',
+    '#value' => $middle_name,
   );
 
   $form['page_person_details_last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Achternaam',
     '#required' => TRUE,
+    '#value' => $last_name,
   );
 
   $form['page_person_details_birth_date'] = array(
@@ -103,15 +136,35 @@ function memberform_page_person_details_form(&$form, $storage, $values) {
 }
 
 /**
+ * Form definition for red membership page.
+ */
+function memberform_page_red_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+
+  $form['page_red_membership'] = array(
+    '#title' => 'Rood lidmaatschap',
+    '#type' => 'radios',
+    '#options' => array(
+      'rood_member' => 'Ja, ik wil ook lid worden van ROOD, Jong in de SP!',
+      'no_rood_member' => 'Nee, ik wil alleen lid worden van de SP',
+    ),
+    '#required' => TRUE,
+  );
+}
+
+/**
  * Form definition for address page.
  */
-function memberform_page_address_form(&$form, $storage, $values) {
+function memberform_page_address_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   $countries = country_get_list();
   $form['page_address_country'] = array(
     '#title'         => 'Land',
     '#type'          => 'select',
     '#options'       => $countries,
+    '#default_value' => 'NL',
     '#required'      => TRUE,
     '#ajax' => array(
       'wrapper' => 'memberform_form_wrapper',
@@ -119,111 +172,277 @@ function memberform_page_address_form(&$form, $storage, $values) {
     ),
   );
 
-  if (!empty($storage['values']['address']['page_address_country'])) {
-    if ($storage['values']['address']['page_address_country'] === 'NL') {
-      // Dutch address.
-      $form['page_address_postal_code'] = array(
-        '#title'         => 'Postcode',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-        '#ajax' => array(
-          'wrapper' => 'memberform_form_wrapper',
-          'callback' => 'memberform_ajax_callback',
-        ),
-      );
-      $form['page_address_house_number'] = array(
-        '#title'         => 'Huisnummer',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-      );
-      $form['page_address_house_number_addition'] = array(
-        '#title'         => 'Huisnummer toevoeging',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-      );
-      if (empty($storage['values']['address'])) {
-        $default = 'xxxxx';
+  if (
+    $storage['values']['address']['page_address_country'] === 'NL' ||
+    empty($storage['values']['address']['page_address_country'])
+  ) {
+    // Dutch address, autofill street and locality fields.
+    $form['page_address_postal_code'] = array(
+      '#title'         => 'Postcode',
+      '#type'          => 'textfield',
+      '#required'      => TRUE,
+      '#ajax' => array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+      ),
+    );
+    $form['page_address_house_number'] = array(
+      '#title'         => 'Huisnummer',
+      '#type'          => 'textfield',
+      '#required'      => TRUE,
+      '#ajax' => array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+      ),
+    );
+    $form['page_address_house_number_addition'] = array(
+      '#title'         => 'Huisnummer toevoeging',
+      '#type'          => 'textfield',
+    );
+    // Get address data based on postal code and house number.
+    if (!empty($storage['values']['address']['page_address_postal_code'])) {
+      $house_number = (isset($storage['values']['address']['page_address_house_number'])) ? $storage['values']['address']['page_address_house_number'] : NULL;
+      $address_data = memberform_postcode_lookup($storage['values']['address']['page_address_postal_code'], $house_number);
+      if (empty($address_data)) {
+        // Show warning when postalcode housenumber combination is not found.
+        $message = '<div class="messages warning">Deze combinatie van postcode en huisnummer kon niet worden gevonden!</div>';
+        $form['page_address_house_number']['#field_suffix'] = empty($form['page_address_house_number']['#field_suffix']) ? $message : $form['page_address_house_number']['#field_suffix'] . $message;
       }
-      else {
-        $default = 'works';
-      }
-      $form['page_address_street'] = array(
-        '#title'         => 'Straat',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-        '#value' => $default,
-      );
-      $form['page_address_locality'] = array(
-        '#title'         => 'Plaats',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-      );
     }
-    else {
-      // International address.
-      $form['page_address_street'] = array(
-        '#title'         => 'Straat',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-      );
-      $form['page_address_house_number'] = array(
-        '#title'         => 'Huisnummer',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-      );
-      $form['page_address_house_number_addition'] = array(
-        '#title'         => 'Huisnummer toevoeging',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-      );
-      $form['page_address_postal_code'] = array(
-        '#title'         => 'Postcode',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
-      );
-      $form['page_address_locality'] = array(
-        '#title'         => 'Plaats',
-        '#type'          => 'textfield',
-        '#required'      => TRUE,
+    // Set street value.
+    $value = (!empty($address_data->adres)) ? $address_data->adres : '';
+    $form['page_address_street'] = array(
+      '#title'         => 'Straat',
+      '#type'          => 'textfield',
+      '#required'      => TRUE,
+      '#value' => $value,
+    );
+    // Set locality value.
+    $value = (!empty($address_data->woonplaats)) ? $address_data->woonplaats : '';
+    $form['page_address_locality'] = array(
+      '#title'         => 'Plaats',
+      '#type'          => 'textfield',
+      '#required'      => TRUE,
+      '#value' => $value,
+    );
+  }
+  else {
+    // International address.
+    $form['page_address_street'] = array(
+      '#title'         => 'Straat',
+      '#type'          => 'textfield',
+      '#required'      => TRUE,
+    );
+    $form['page_address_house_number'] = array(
+      '#title'         => 'Huisnummer',
+      '#type'          => 'textfield',
+      '#required'      => TRUE,
+    );
+    $form['page_address_house_number_addition'] = array(
+      '#title'         => 'Huisnummer toevoeging',
+      '#type'          => 'textfield',
+    );
+    $form['page_address_postal_code'] = array(
+      '#title'         => 'Postcode',
+      '#type'          => 'textfield',
+    );
+    $form['page_address_locality'] = array(
+      '#title'         => 'Plaats',
+      '#type'          => 'textfield',
+      '#required'      => TRUE,
+    );
+  }
+}
+
+/**
+ * Form definition for contribution page.
+ */
+function memberform_page_contribution_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+  $form['page_contribution_choice'] = array(
+    '#title' => 'Kwartaalbijdrage',
+    '#type' => 'radios',
+    '#options' => array(
+      '50' => '50,-',
+      '20' => '20,-',
+      '10' => '10,-',
+      'custom' => 'Anders',
+    ),
+    '#required' => TRUE,
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+
+  if ($storage['values']['contribution']['page_contribution_choice'] === 'custom') {
+    $form['page_contribution_custom'] = array(
+      '#title' => 'Kies een bedrag (minimaal 5 euro)',
+      '#type' => 'textfield',
+      '#required' => TRUE,
+      '#field_prefix' => '<div class="inline">€</div>',
+    );
+  }
+
+  $form['page_contribution_payment_type'] = array(
+    '#title' => 'Hoe wil je je bijdrage voldoen?',
+    '#type' => 'radios',
+    '#options' => array(
+      'auto' => 'Automatische incasso',
+      'accept' => 'Acceptgiro',
+    ),
+    '#name' => 'page_contribution_payment_type',
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+
+  $form['page_contribution_iban'] = array(
+    '#title' => 'Wat is je bankrekeningnummer?',
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#states' => array(
+      'visible' => array(
+        ':input[name="page_contribution_payment_type"]' => array(
+          'value' => 'auto',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Form definition for gift page.
+ *
+ * Add images in module folder gift_images like book.jpg.
+ */
+function memberform_page_gift_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+
+  $gifts = array(
+    'book' => 'Boek Emile Roemer - Het kan wel',
+    'usbstick' => 'SP usb stick 4G (Met SP informatie)',
+    'none' => 'Geen Welkomstgeschenk',
+  );
+
+  foreach ($gifts as $key => $title) {
+    if ($key === 'none') {
+      continue;
+    }
+    if (empty($storage['values']['gift']) || $storage['values']['gift']['page_gift_select'] === $key) {
+      $form['page_gift_' . $key] = array(
+        '#markup' => '<div class="image"><img src="' . drupal_get_path('module', 'memberform') . '/gift_images/' . $key . '.jpg" /></div>',
       );
     }
   }
+
+  $form['page_gift_select'] = array(
+    '#type' => 'radios',
+    '#options' => $gifts,
+    '#default_value' => 'book',
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+}
+
+/**
+ * Form definition for summary page.
+ */
+function memberform_page_summary_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+  $values = $storage['values'];
+
+  foreach ($values as $page => $items) {
+    foreach ($items as $key => $value) {
+    }
+  }
+
+  $form['page_summary_confirm'] = array(
+    '#title' => 'Akkoord',
+    '#type' => 'checkbox',
+  );
 }
 
 /**
  * Validation for member form pages.
  */
 function memberform_page_form_validate($form, &$form_state) {
+  $values = &$form_state['values'];
+  $storage = &$form_state['storage'];
 
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
   if ($trigger != 'previous_page') {
 
-    $values = $form_state['values'];
-    $storage = $form_state['storage'];
-
     switch ($storage['current_page']) {
       case 'start':
-        drupal_set_message('Validated start');
+        if (!empty($values['page_start_email'])) {
+          if (!valid_email_address($values['page_start_email'])) {
+            form_set_error('page_start_email', 'Geef een geldig e-mailadres op!');
+          }
+        }
         break;
 
-      case 'thanks_phone':
-        drupal_set_message('Validated thanks_phone');
+      case 'quickfinish':
         break;
 
       case 'person_details':
-        drupal_set_message('Validated person_details');
         break;
 
       case 'address':
-        drupal_set_message('Validated address');
+        $checks = array(
+          'postal_code' => array(
+            'regex' => '/^[1-9][0-9]{3}\s?[a-zA-Z]{2}$/',
+            'message' => 'Vul een correcte postcode in',
+          ),
+          'house_number' => array(
+            'regex' => '/^[1-9][0-9]*$/',
+            'message' => 'Vul een huisnummer in',
+          ),
+        );
+        foreach ($checks as $key => $check) {
+          if (!empty($values['page_address_' . $key])) {
+            if (!preg_match($check['regex'], $values['page_address_' . $key])) {
+              form_set_error('page_address_' . $key, $check['message']);
+            }
+          }
+        }
+        break;
+
+      case 'contribution':
+        if ($values['page_contribution_choice'] === 'custom') {
+          unset($values['amount']);
+          $amount = $values['page_contribution_custom'];
+          $amount = preg_replace('/[^0-9,.]/', '', $amount);
+          $amount = str_replace(',', '.', $amount);
+          if (!is_numeric($amount)) {
+            form_set_error('page_contribution_custom', 'Vul een getal in.');
+          }
+          else {
+            $amount = number_format($amount, 2, '.', '');
+            if ($amount < 5) {
+              form_set_error('page_contribution_custom', 'De minimumbijdrage is 5 euro.');
+            }
+            $amount = str_replace('.', ',', $amount);
+            $values['page_contribution_custom'] = $amount;
+          }
+        }
+        if ($values['page_contribution_payment_type'] === 'auto') {
+          $iban = strtoupper($values['page_contribution_iban']);
+          $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
+          if (!memberform_check_iban($iban)) {
+            form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
+          }
+          else {
+            $values['page_contribution_iban'] = $iban;
+          }
+        }
         break;
     }
   }
-
-  // Do no remove these lines.
-  $form_state['form_errors'] = form_get_errors();
-  memberform_remove_errors($form_state);
 }
 
 /**
@@ -247,32 +466,46 @@ function memberform_page_form_submit($form, &$form_state) {
     case 'next_page':
       switch ($storage['current_page']) {
         case 'start':
-          // Store split name values.
-          if (empty($storage['values']['person_details']['page_person_details_last_name'])) {
-            $split_name = memberform_split_name($values['page_start_name']);
-            $name_types = array(
-              'first_name',
-              'middle_name',
-              'last_name',
-            );
-            foreach ($name_types as $name_type) {
-              if (!empty($split_name[$name_type])) {
-                $storage['values']['person_details']['page_person_details_' . $name_type] = $split_name[$name_type];
-              }
-            }
-          }
           // Set form navigation.
           if (empty($values['page_start_phone'])) {
             $storage['next_page'] = 'person_details';
           }
           else {
-            $storage['next_page'] = 'thanks_phone';
+            $storage['next_page'] = 'quickfinish';
           }
           break;
 
+        case 'quickfinish':
+          $storage['next_page'] = 'person_details';
+          break;
+
         case 'person_details':
-        case 'thanks_phone':
+          $birthdate = new DateTime($values['page_person_details_birth_date']);
+          $today   = new DateTime('today');
+          $age = $birthdate->diff($today)->y;
+          if ($age <= 27) {
+            $storage['next_page'] = 'red';
+          }
+          else {
+            $storage['next_page'] = 'address';
+          }
+          break;
+
+        case 'red':
           $storage['next_page'] = 'address';
+          break;
+
+        case 'address':
+          $storage['next_page'] = 'contribution';
+          break;
+
+        case 'contribution':
+          $storage['next_page'] = 'gift';
+          break;
+
+        case 'gift':
+          $storage['next_page'] = 'summary';
+          $storage['last_page'] = TRUE;
           break;
       }
       break;

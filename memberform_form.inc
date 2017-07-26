@@ -21,13 +21,14 @@ function memberform_form($form, &$form_state) {
   // Store storage data in form.
   $form_state['storage'] = $storage;
   $storage = &$form_state['storage'];
-  dpm($storage);
 
   // Create form based on form page.
   $form = array(
     '#validate' => array(
-      'memberform_form_validate',
+      // This order is needed because of required elements inline message.
+      'memberform_form_pre_custom_validate',
       'memberform_page_form_validate',
+      'memberform_form_post_custom_validate',
     ),
     '#submit' => array(
       'memberform_page_form_submit',
@@ -35,18 +36,39 @@ function memberform_form($form, &$form_state) {
     ),
     '#prefix' => '<div id="memberform_form_wrapper">',
     '#suffix' => '</div>',
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'memberform') . '/css/memberform.css',
+      ),
+    ),
   );
 
-  $form['progress'] = array(
-    '#markup' => '<h3>Stap ' . $storage['step'] . '</h3>',
-  );
+  $file_path = drupal_get_path('module', 'memberform') . '/header_images/' . $storage['current_page'] . '.jpg';
+  if (file_exists($file_path)) {
+    $form['header'] = array(
+      '#markup' => '<div class="form_header"><img src="' . drupal_get_path('module', 'memberform') . '/header_images/' . $storage['current_page'] . '.jpg" /></div>',
+    );
+  }
+
+  /*
+   * Add form title and step.
+   * $storage['step']
+   * memberform_settings('titles')
+   * $storage['current_page']
+   */
+  $titles = memberform_settings('titles');
+  if (!empty($titles[$storage['current_page']])) {
+    $form['progress'] = array(
+      '#markup' => '<h3>' . $titles[$storage['current_page']] . '</h3>',
+    );
+  }
 
   // Get pages forms.
   $form_callback = 'memberform_page_' . $storage['current_page'] . '_form';
   if (function_exists($form_callback)) {
 
     // Add page specific form elements.
-    $form_callback($form, $storage, $values);
+    $form_callback($form, $form_state);
 
     // Modify form elements.
     foreach ($form as $key => $item) {
@@ -114,13 +136,9 @@ function memberform_form($form, &$form_state) {
 /**
  * Validate function for memberform.
  */
-function memberform_form_validate($form, &$form_state) {
+function memberform_form_pre_custom_validate($form, &$form_state) {
   $values = $form_state['values'];
   $storage = &$form_state['storage'];
-
-  // Store values.
-  $storage['values'][$storage['current_page']] = $values;
-  memberform_store_form_data($storage);
 
   // Implement required fields validation.
   $trigger = $form_state['triggering_element']['#name'];
@@ -133,6 +151,21 @@ function memberform_form_validate($form, &$form_state) {
       }
     }
   }
+}
+
+/**
+ * Validate function for memberform.
+ */
+function memberform_form_post_custom_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  $storage = &$form_state['storage'];
+
+  // Store values.
+  $storage['values'][$storage['current_page']] = $values;
+  memberform_store_form_data($storage);
+
+  $form_state['form_errors'] = form_get_errors();
+  memberform_remove_errors($form_state);
 }
 
 /**

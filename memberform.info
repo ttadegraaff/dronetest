@@ -2,3 +2,5 @@ name = SP Lidworden Formulier
 description = Leden kunnen zich aanmelden.
 dependencies[] = date:date_api
 core = 7.x
+
+dependencies[] = spciviapi
