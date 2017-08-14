@@ -91,6 +91,9 @@ function memberform_form($form, &$form_state) {
           $form[$key]['#title'] .= ' <span class="form-required" title="This field is required.">*</span>';
           $storage['required_fields'][$key] = $key;
         }
+        // Store form definition for use in other pages
+        // (review page for example).
+        $storage['form_element_definitions'][$key] = $form[$key];
       }
     }
   }

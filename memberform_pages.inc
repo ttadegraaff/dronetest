@@ -36,8 +36,8 @@
 function memberform_settings($variable_name) {
   $settings = array(
     'no_back_pages' => array(
-      //'quickfinish',
-      //'person_details',
+      'quickfinish',
+      // 'person_details',
     ),
     'titles' => array(
       'start' => 'Contactgegevens',
@@ -203,9 +203,9 @@ function memberform_page_address_form(&$form, &$form_state) {
     if (!empty($storage['values']['address']['page_address_postal_code'])) {
       $house_number = (isset($storage['values']['address']['page_address_house_number'])) ? $storage['values']['address']['page_address_house_number'] : NULL;
       $address_data = memberform_postcode_lookup($storage['values']['address']['page_address_postal_code'], $house_number);
-      if (empty($address_data)) {
+      if (!is_object($address_data) && !empty($address_data)) {
         // Show warning when postalcode housenumber combination is not found.
-        $message = '<div class="messages warning">Deze combinatie van postcode en huisnummer kon niet worden gevonden!</div>';
+        $message = '<div class="messages warning">' . $address_data . '</div>';
         $form['page_address_house_number']['#field_suffix'] = empty($form['page_address_house_number']['#field_suffix']) ? $message : $form['page_address_house_number']['#field_suffix'] . $message;
       }
     }
@@ -354,15 +354,66 @@ function memberform_page_gift_form(&$form, &$form_state) {
 function memberform_page_summary_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   $values = $storage['values'];
+  $page_titles = memberform_settings('titles');
 
+  $markup = '';
+  $rows = array();
+
+  // Loop through pages.
   foreach ($values as $page => $items) {
-    foreach ($items as $key => $value) {
+    if (in_array($page, $storage['page_history'])) {
+      $rows_tmp[] = array('<strong>' . $page_titles[$page] . '</strong>', '');
+      // Loop through form elements.
+      foreach ($items as $key => $value) {
+        if (!empty($storage['form_element_definitions'][$key])) {
+          $form_element = $storage['form_element_definitions'][$key];
+          $title = (empty($form_element['#title'])) ? '' : $form_element['#title'];
+          if (strpos($key, 'page_') === 0) {
+            // Parse output of different form element types.
+            switch ($form_element['#type']) {
+              case 'textfield':
+                $rows_tmp[] = array($title, $value);
+                break;
+
+              case 'date_select':
+                $date = date("d-m-Y", strtotime($value));
+                $rows_tmp[] = array($title, $date);
+                break;
+
+              case 'select':
+              case 'radios':
+                $display = $form_element['#options'][$value];
+                $rows_tmp[] = array($title, $display);
+                break;
+            }
+          }
+        }
+      }
+      // Do not output pages without interactive elements.
+      if (count($rows_tmp) > 1) {
+        $rows = array_merge($rows, $rows_tmp);
+      }
+      $rows_tmp = array();
     }
   }
+  // Create table.
+  $markup = theme('table', array('rows' => $rows));
+  $form['overview'] = array(
+    '#markup' => $markup,
+  );
 
   $form['page_summary_confirm'] = array(
     '#title' => 'Akkoord',
     '#type' => 'checkbox',
+  );
+}
+
+/**
+ * Form definition for finish page.
+ */
+function memberform_page_finish_form(&$form, &$form_state) {
+  $form['finish'] = array(
+    '#markup' => '<p>Thx!</p>',
   );
 }
 
@@ -441,6 +492,11 @@ function memberform_page_form_validate($form, &$form_state) {
           }
         }
         break;
+
+      case 'summary':
+        if (empty($values['page_summary_confirm'])) {
+          form_set_error('page_summary_confirm', 'U dient akkoord te gaan.');
+        }
     }
   }
 }
@@ -505,8 +561,11 @@ function memberform_page_form_submit($form, &$form_state) {
 
         case 'gift':
           $storage['next_page'] = 'summary';
-          $storage['last_page'] = TRUE;
           break;
+
+        case 'summary':
+          $storage['next_page'] = 'finish';
+          $storage['last_page'] = TRUE;
       }
       break;
 
