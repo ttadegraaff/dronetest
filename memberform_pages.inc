@@ -325,9 +325,6 @@ function memberform_page_gift_form(&$form, &$form_state) {
   );
 
   foreach ($gifts as $key => $title) {
-    if ($key === 'none') {
-      continue;
-    }
     if (empty($storage['values']['gift'])) {
       reset($gifts);
       $key = key($gifts);
@@ -369,7 +366,16 @@ function memberform_page_summary_form(&$form, &$form_state) {
   // Loop through pages.
   foreach ($values as $page => $items) {
     if (in_array($page, $storage['page_history'])) {
-      $rows_tmp[] = array('<strong>' . $page_titles[$page] . '</strong>', '');
+      $rows_tmp[] = array(
+        'data' => array(
+          0 => array(
+            'data' => $page_titles[$page],
+            'header' => TRUE,
+            'colspan' => 2,
+          ),
+        ),
+        'no_striping' => TRUE,
+      );
       // Loop through form elements.
       foreach ($items as $key => $value) {
         if (!empty($storage['form_element_definitions'][$key])) {
@@ -468,6 +474,10 @@ function memberform_page_form_validate($form, &$form_state) {
             'message' => 'Vul een huisnummer in',
           ),
         );
+        // Do no check International postal codes.
+        if ($values['page_address_country'] !== 'NL') {
+          unset($checks['postal_code']);
+        }
         foreach ($checks as $key => $check) {
           if (!empty($values['page_address_' . $key])) {
             if (!preg_match($check['regex'], $values['page_address_' . $key])) {
@@ -498,11 +508,13 @@ function memberform_page_form_validate($form, &$form_state) {
         if ($values['page_contribution_payment_type'] === 'auto') {
           $iban = strtoupper($values['page_contribution_iban']);
           $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
-          if (!memberform_check_iban($iban)) {
-            form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
-          }
-          else {
-            $values['page_contribution_iban'] = $iban;
+          if ($storage['values']['address']['page_address_country'] === 'NL') {
+            if (!memberform_check_iban($iban)) {
+              form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
+            }
+            else {
+              $values['page_contribution_iban'] = $iban;
+            }
           }
         }
         break;

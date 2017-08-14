@@ -79,12 +79,13 @@ function memberform_form($form, &$form_state) {
         }
         // Add error messages.
         if (isset($form_state['form_errors'][$key])) {
-          $form[$key]['#prefix'] = '<div class="memberform validation-error"><div class="messages error">' . $form_state['form_errors'][$key] . '</div>';
+          $form[$key]['#prefix'] = '<div class="memberform validation-error">';
+          $form[$key]['#suffix'] = '<div class="messages error">' . $form_state['form_errors'][$key] . '</div></div>';
         }
         else {
           $form[$key]['#prefix'] = '<div class="memberform">';
+          $form[$key]['#suffix'] = '</div>';
         }
-        $form[$key]['#suffix'] = '</div>';
         // Rebuild required functionality.
         if (!empty($form[$key]['#required'])) {
           unset($form[$key]['#required']);
@@ -104,7 +105,7 @@ function memberform_form($form, &$form_state) {
     if (!in_array($storage['current_page'], $no_back_pages) && empty($storage['thanks_page'])) {
       $form['previous_page'] = array(
         '#type' => 'submit',
-        '#value' => 'Vorige',
+        '#value' => 'Terug',
         '#name' => 'previous_page',
         '#ajax' => array(
           'wrapper' => 'memberform_form_wrapper',
@@ -115,7 +116,7 @@ function memberform_form($form, &$form_state) {
   }
 
   if (empty($storage['finish_page'])) {
-    $next_button_text = 'Volgende';
+    $next_button_text = 'Verder';
   }
   else {
     $next_button_text = 'Insturen';
