@@ -37,11 +37,10 @@ function memberform_settings($variable_name) {
   $settings = array(
     'no_back_pages' => array(
       'quickfinish',
-      // 'person_details',
+      'person_details',
     ),
     'titles' => array(
       'start' => 'Contactgegevens',
-      'quickfinish' => 'Gelukt!',
       'person_details' => 'Persoonsgegevens',
       'red' => 'ROOD lidmaatschap',
       'address' => 'Adresgegevens',
@@ -301,7 +300,6 @@ function memberform_page_contribution_form(&$form, &$form_state) {
   $form['page_contribution_iban'] = array(
     '#title' => 'Wat is je bankrekeningnummer?',
     '#type' => 'textfield',
-    '#required' => TRUE,
     '#states' => array(
       'visible' => array(
         ':input[name="page_contribution_payment_type"]' => array(
@@ -330,10 +328,19 @@ function memberform_page_gift_form(&$form, &$form_state) {
     if ($key === 'none') {
       continue;
     }
-    if (empty($storage['values']['gift']) || $storage['values']['gift']['page_gift_select'] === $key) {
+    if (empty($storage['values']['gift'])) {
+      reset($gifts);
+      $key = key($gifts);
       $form['page_gift_' . $key] = array(
         '#markup' => '<div class="image"><img src="' . drupal_get_path('module', 'memberform') . '/gift_images/' . $key . '.jpg" /></div>',
       );
+    }
+    else {
+      if ($storage['values']['gift']['page_gift_select'] === $key) {
+        $form['page_gift_' . $key] = array(
+          '#markup' => '<div class="image"><img src="' . drupal_get_path('module', 'memberform') . '/gift_images/' . $key . '.jpg" /></div>',
+        );
+      }
     }
   }
 
@@ -409,11 +416,18 @@ function memberform_page_summary_form(&$form, &$form_state) {
 }
 
 /**
- * Form definition for finish page.
+ * Form definition for thanks page.
  */
-function memberform_page_finish_form(&$form, &$form_state) {
-  $form['finish'] = array(
-    '#markup' => '<p>Thx!</p>',
+function memberform_page_thanks_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+  if (!empty($storage['values']['person_details']['page_person_details_first_name'])) {
+    $name = $storage['values']['person_details']['page_person_details_first_name'];
+  }
+  else {
+    $name = $storage['values']['start']['page_start_name'];
+  }
+  $form['thanks'] = array(
+    '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
   );
 }
 
@@ -504,8 +518,11 @@ function memberform_page_form_validate($form, &$form_state) {
 /**
  * Submit function for memberform pages.
  *
- * Set $storage['next_page'] to value of next page, and if next page is
- * the last one, set $storage['last_page'] to TRUE;
+ * Set $storage['next_page'] to value of next page. The text of the submit
+ * button can be set to 'submit' instead of 'next' by setting
+ * $storage['finish_page'] to TRUE. Next a thanks page without submit buttons
+ * can be set: $storage['thanks_page'] to TRUE and the next page will have no
+ * submit buttons.
  */
 function memberform_page_form_submit($form, &$form_state) {
   if (isset($form_state['form_errors'])) {
@@ -561,18 +578,12 @@ function memberform_page_form_submit($form, &$form_state) {
 
         case 'gift':
           $storage['next_page'] = 'summary';
+          $storage['finish_page'] = TRUE;
           break;
 
         case 'summary':
-          $storage['next_page'] = 'finish';
-          $storage['last_page'] = TRUE;
-      }
-      break;
-
-    case 'finish':
-      switch ($storage['current_page']) {
-        case 'xxxx':
-          break;
+          $storage['next_page'] = 'thanks';
+          $storage['thanks_page'] = TRUE;
       }
       break;
   }

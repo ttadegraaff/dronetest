@@ -101,7 +101,7 @@ function memberform_form($form, &$form_state) {
   // Add action buttons.
   if ($storage['step'] > 1) {
     $no_back_pages = memberform_settings('no_back_pages');
-    if (!in_array($storage['current_page'], $no_back_pages)) {
+    if (!in_array($storage['current_page'], $no_back_pages) && empty($storage['thanks_page'])) {
       $form['previous_page'] = array(
         '#type' => 'submit',
         '#value' => 'Vorige',
@@ -114,17 +114,16 @@ function memberform_form($form, &$form_state) {
     }
   }
 
-  if (!empty($storage['last_page'])) {
-    $form['finish'] = array(
-      '#type' => 'submit',
-      '#value' => 'Insturen',
-      '#name' => 'finish',
-    );
+  if (empty($storage['finish_page'])) {
+    $next_button_text = 'Volgende';
   }
   else {
+    $next_button_text = 'Insturen';
+  }
+  if (empty($storage['thanks_page'])) {
     $form['next_page'] = array(
       '#type' => 'submit',
-      '#value' => 'Volgende',
+      '#value' => $next_button_text,
       '#name' => 'next_page',
       '#ajax' => array(
         'wrapper' => 'memberform_form_wrapper',
@@ -195,11 +194,13 @@ function memberform_form_submit($form, &$form_state) {
     case 'previous_page':
       $storage['step']--;
       $storage['current_page'] = array_pop($storage['page_history']);
-      unset($storage['last_page']);
       unset($storage['next_page']);
+      unset($storage['finish_page']);
+      unset($storage['thanks_page']);
       break;
 
     case 'next_page':
+    case 'finish_page':
       $storage['step']++;
       $storage['page_history'][] = $storage['current_page'];
       $storage['current_page'] = $storage['next_page'];
@@ -212,13 +213,7 @@ function memberform_form_submit($form, &$form_state) {
   // Store submission id in session.
   $_SESSION['memberform']['sid'] = $storage['sid'];
 
-  // Rebuild form when not finished.
-  if ($trigger !== 'finish') {
-    $form_state['rebuild'] = TRUE;
-  }
-  else {
-    unset($_SESSION['memberform']['sid']);
-  }
+  $form_state['rebuild'] = TRUE;
 }
 
 /**
