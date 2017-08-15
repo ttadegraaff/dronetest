@@ -9,7 +9,7 @@
  *
  *   Example:
  *
- *   function memberform_page_start_form(&$form, $storage, $values) {
+ *   function memberform_membership_page_start_form(&$form, $storage, $values) {
  *     $form['page_start_choice'] = array(
  *       '#type' => 'radios',
  *       '#title' => 'Maak een keuze',
@@ -33,7 +33,7 @@
  * @return Variable value.
  *   Returns variable value.
  */
-function memberform_settings($variable_name) {
+function memberform_membership_settings($variable_name) {
   $settings = array(
     'no_back_pages' => array(
       'quickfinish',
@@ -55,7 +55,7 @@ function memberform_settings($variable_name) {
 /**
  * Form definition for start page.
  */
-function memberform_page_start_form(&$form, &$form_state) {
+function memberform_membership_page_start_form(&$form, &$form_state) {
   $form['page_start_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Naam',
@@ -76,7 +76,7 @@ function memberform_page_start_form(&$form, &$form_state) {
 /**
  * Form definition for thanks phone page.
  */
-function memberform_page_quickfinish_form(&$form, &$form_state) {
+function memberform_membership_page_quickfinish_form(&$form, &$form_state) {
   $form['page_quickfinish_feedback'] = array(
     '#markup' => '<p>We nemen binnenkort contact met je op om het lidmaatschap af te ronden.</p><p>Ga verder als je zelf je inschrijving wilt afronden.</p>',
   );
@@ -85,7 +85,7 @@ function memberform_page_quickfinish_form(&$form, &$form_state) {
 /**
  * Form definition for person details page.
  */
-function memberform_page_person_details_form(&$form, &$form_state) {
+function memberform_membership_page_person_details_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
 
   // Split name given in start page.
@@ -137,7 +137,7 @@ function memberform_page_person_details_form(&$form, &$form_state) {
 /**
  * Form definition for red membership page.
  */
-function memberform_page_red_form(&$form, &$form_state) {
+function memberform_membership_page_red_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
 
   $form['page_red_membership'] = array(
@@ -154,7 +154,7 @@ function memberform_page_red_form(&$form, &$form_state) {
 /**
  * Form definition for address page.
  */
-function memberform_page_address_form(&$form, &$form_state) {
+function memberform_membership_page_address_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
 
   include_once DRUPAL_ROOT . '/includes/locale.inc';
@@ -256,7 +256,7 @@ function memberform_page_address_form(&$form, &$form_state) {
 /**
  * Form definition for contribution page.
  */
-function memberform_page_contribution_form(&$form, &$form_state) {
+function memberform_membership_page_contribution_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   $form['page_contribution_choice'] = array(
     '#title' => 'Kwartaalbijdrage',
@@ -315,7 +315,7 @@ function memberform_page_contribution_form(&$form, &$form_state) {
  *
  * Add images in module folder gift_images like book.jpg.
  */
-function memberform_page_gift_form(&$form, &$form_state) {
+function memberform_membership_page_gift_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
 
   $gifts = array(
@@ -355,10 +355,10 @@ function memberform_page_gift_form(&$form, &$form_state) {
 /**
  * Form definition for summary page.
  */
-function memberform_page_summary_form(&$form, &$form_state) {
+function memberform_membership_page_summary_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   $values = $storage['values'];
-  $page_titles = memberform_settings('titles');
+  $page_titles = memberform_membership_settings('titles');
 
   $markup = '';
   $rows = array();
@@ -366,10 +366,11 @@ function memberform_page_summary_form(&$form, &$form_state) {
   // Loop through pages.
   foreach ($values as $page => $items) {
     if (in_array($page, $storage['page_history'])) {
+      $page_title = (empty($page_titles[$page])) ? '' : $page_titles[$page];
       $rows_tmp[] = array(
         'data' => array(
           0 => array(
-            'data' => $page_titles[$page],
+            'data' => $page_title,
             'header' => TRUE,
             'colspan' => 2,
           ),
@@ -419,7 +420,7 @@ function memberform_page_summary_form(&$form, &$form_state) {
 /**
  * Form definition for thanks page.
  */
-function memberform_page_thanks_form(&$form, &$form_state) {
+function memberform_membership_page_thanks_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   if (!empty($storage['values']['person_details']['page_person_details_first_name'])) {
     $name = $storage['values']['person_details']['page_person_details_first_name'];
@@ -435,7 +436,7 @@ function memberform_page_thanks_form(&$form, &$form_state) {
 /**
  * Validation for member form pages.
  */
-function memberform_page_form_validate($form, &$form_state) {
+function memberform_membership_page_form_validate($form, &$form_state) {
   $values = &$form_state['values'];
   $storage = &$form_state['storage'];
 
@@ -529,7 +530,7 @@ function memberform_page_form_validate($form, &$form_state) {
  * can be set: $storage['thanks_page'] to TRUE and the next page will have no
  * submit buttons.
  */
-function memberform_page_form_submit($form, &$form_state) {
+function memberform_membership_page_form_submit($form, &$form_state) {
   if (isset($form_state['form_errors'])) {
     return;
   }

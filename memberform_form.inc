@@ -27,11 +27,11 @@ function memberform_form($form, &$form_state, $form_name) {
     '#validate' => array(
       // This order is needed because of required elements inline message.
       'memberform_form_pre_custom_validate',
-      'memberform_page_form_validate',
+      'memberform_' . $form_name . '_page_form_validate',
       'memberform_form_post_custom_validate',
     ),
     '#submit' => array(
-      'memberform_page_form_submit',
+      'memberform_' . $form_name . '_page_form_submit',
       'memberform_form_submit',
     ),
     '#prefix' => '<div id="memberform_form_wrapper">',
@@ -56,7 +56,8 @@ function memberform_form($form, &$form_state, $form_name) {
    * memberform_settings('titles')
    * $storage['current_page']
    */
-  $titles = memberform_settings('titles');
+  $settings_callback = 'memberform_' . $form_name . '_settings';
+  $titles = $settings_callback('titles');
   if (!empty($titles[$storage['current_page']])) {
     $form['progress'] = array(
       '#markup' => '<h3>' . $titles[$storage['current_page']] . '</h3>',
@@ -64,7 +65,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Get pages forms.
-  $form_callback = 'memberform_page_' . $storage['current_page'] . '_form';
+  $form_callback = 'memberform_' . $form_name . '_page_' . $storage['current_page'] . '_form';
   if (function_exists($form_callback)) {
 
     // Add page specific form elements.
@@ -106,7 +107,8 @@ function memberform_form($form, &$form_state, $form_name) {
 
   // Add action buttons.
   if ($storage['step'] > 1) {
-    $no_back_pages = memberform_settings('no_back_pages');
+    $settings_callback = 'memberform_' . $form_name . '_settings';
+    $no_back_pages = $settings_callback('no_back_pages');
     if (!in_array($storage['current_page'], $no_back_pages) && empty($storage['thanks_page'])) {
       $form['previous_page'] = array(
         '#type' => 'submit',
