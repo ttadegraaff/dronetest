@@ -8,7 +8,7 @@
 /**
  * Form constructor for the member form.
  */
-function memberform_form($form, &$form_state) {
+function memberform_form($form, &$form_state, $form_name) {
   $values = isset($form_state['values']) ? $form_state['values'] : array();
   $storage = memberform_get_storage();
 
@@ -76,6 +76,11 @@ function memberform_form($form, &$form_state) {
         // Add default values.
         if (isset($storage['values'][$storage['current_page']][$key])) {
           $form[$key]['#default_value'] = $storage['values'][$storage['current_page']][$key];
+        }
+        else {
+          if (empty($form[$key]['#default_value'])) {
+            $form[$key]['#default_value'] = NULL;
+          }
         }
         // Add error messages.
         if (isset($form_state['form_errors'][$key])) {

@@ -8,8 +8,16 @@
  * Include form page definitions.
  */
 module_load_include('inc', 'memberform', 'memberform_helpers');
-module_load_include('inc', 'memberform', 'memberform_pages');
 module_load_include('inc', 'memberform', 'memberform_pages_helpers');
+
+// Include form definition files in /pages.
+$paths = glob(drupal_get_path('module', 'memberform') . '/pages/*');
+foreach ($paths as $path) {
+  $result = preg_match('/^.*\/memberform_([^.]*)_pages.inc$/', $path, $matches);
+  if (!empty($matches[1])) {
+    module_load_include('inc', 'memberform', 'pages/memberform_' . $matches[1] . '_pages');
+  }
+}
 
 /**
  * Implements hook_menu().
@@ -19,12 +27,27 @@ function memberform_menu() {
   $items['lid-worden'] = array(
     'title' => 'Lid worden',
     'type' => MENU_NORMAL_ITEM,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('memberform_form'),
+    'page callback' => 'memberform_get_form',
+    'page arguments' => array('memberform_form', 'membership'),
     'file' => 'memberform_form.inc',
     'access callback' => TRUE,
   );
   return $items;
+}
+
+/**
+ * Custom form callback to pass arguments.
+ *
+ * @param string $form_callback
+ *   General form callback for all forms and pages.
+ * @param string $form_name
+ *   Name of the form to display.
+ *
+ * @return array
+ *   Drupal form render array.
+ */
+function memberform_get_form($form_callback, $form_name) {
+  return drupal_get_form($form_callback, $form_name);
 }
 
 /**

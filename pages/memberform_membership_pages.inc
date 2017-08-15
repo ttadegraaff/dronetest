@@ -172,8 +172,8 @@ function memberform_page_address_form(&$form, &$form_state) {
   );
 
   if (
-    $storage['values']['address']['page_address_country'] === 'NL' ||
-    empty($storage['values']['address']['page_address_country'])
+    empty($storage['values']['address']['page_address_country']) ||
+    $storage['values']['address']['page_address_country'] === 'NL'
   ) {
     // Dutch address, autofill street and locality fields.
     $form['page_address_postal_code'] = array(
@@ -414,11 +414,6 @@ function memberform_page_summary_form(&$form, &$form_state) {
   $form['overview'] = array(
     '#markup' => $markup,
   );
-
-  $form['page_summary_confirm'] = array(
-    '#title' => 'Akkoord',
-    '#type' => 'checkbox',
-  );
 }
 
 /**
@@ -520,9 +515,7 @@ function memberform_page_form_validate($form, &$form_state) {
         break;
 
       case 'summary':
-        if (empty($values['page_summary_confirm'])) {
-          form_set_error('page_summary_confirm', 'U dient akkoord te gaan.');
-        }
+        break;
     }
   }
 }
