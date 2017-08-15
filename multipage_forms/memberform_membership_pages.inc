@@ -292,6 +292,7 @@ function memberform_membership_page_contribution_form(&$form, &$form_state) {
   $form['page_contribution_payment_type'] = array(
     '#title' => 'Hoe wil je je bijdrage voldoen?',
     '#type' => 'radios',
+    '#required' => TRUE,
     '#options' => array(
       'auto' => 'Automatische incasso',
       'accept' => 'Acceptgiro',
