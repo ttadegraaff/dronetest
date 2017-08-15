@@ -159,7 +159,6 @@ function memberform_membership_page_red_form(&$form, &$form_state) {
  */
 function memberform_membership_page_address_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
-  $values = $form_state['values'];
 
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   $countries = country_get_list();
@@ -457,6 +456,9 @@ function memberform_membership_page_form_validate($form, &$form_state) {
           if (!valid_email_address($values['page_start_email'])) {
             form_set_error('page_start_email', 'Geef een geldig e-mailadres op!');
           }
+        }
+        if (empty($values['page_start_email']) && empty($values['page_start_phone'])) {
+          form_set_error('page_start_phone', 'Geef tenminste een e-mailadres of telefoonnummer op zodat we je kunnen bereiken.');
         }
         break;
 

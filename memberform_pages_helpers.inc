@@ -121,7 +121,7 @@ function memberform_postcode_lookup($postcode, $huisnummer = '') {
       return array_shift($res->values);
     }
     else {
-      return 'Deze combinatie van postcode en huisnummer kon niet worden gevonden!';
+      return 'Deze combinatie van postcode en huisnummer kon niet worden gevonden! Weet je zeker dat deze correct is?';
     }
   }
   watchdog('memberform', 'Er is een fout opgetreden bij het ophalen van postcode gegeven via de civiapi.', array(), WATCHDOG_ERROR);
