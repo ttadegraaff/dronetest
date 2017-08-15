@@ -3,9 +3,9 @@
 /**
  * @file Form definitions for memberform pages.
  *
- *   Define page form functions like 'memberform_page_x_form' where x is to be
- *   substituted with the page name used in $storage['current_page'] and
- *   $storage['next_page'].
+ *   Define page form functions like 'memberform_x_page_x_form' where the
+ *   first x is to be substituted with the form name and the second x with the
+ *   page name used in $storage['current_page'] and $storage['next_page'].
  *
  *   Example:
  *
@@ -35,6 +35,8 @@
  */
 function memberform_membership_settings($variable_name) {
   $settings = array(
+    'path_name' => 'lid-worden',
+    'form_title' => 'Lid worden',
     'no_back_pages' => array(
       'quickfinish',
       'person_details',

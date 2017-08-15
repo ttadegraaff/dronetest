@@ -11,12 +11,9 @@ module_load_include('inc', 'memberform', 'memberform_helpers');
 module_load_include('inc', 'memberform', 'memberform_pages_helpers');
 
 // Include form definition files in /pages.
-$paths = glob(drupal_get_path('module', 'memberform') . '/pages/*');
-foreach ($paths as $path) {
-  $result = preg_match('/^.*\/memberform_([^.]*)_pages.inc$/', $path, $matches);
-  if (!empty($matches[1])) {
-    module_load_include('inc', 'memberform', 'pages/memberform_' . $matches[1] . '_pages');
-  }
+$form_names = memberform_get_formnames();
+foreach ($form_names as $form_name) {
+  module_load_include('inc', 'memberform', 'multipage_forms/memberform_' . $form_name . '_pages');
 }
 
 /**
@@ -24,14 +21,20 @@ foreach ($paths as $path) {
  */
 function memberform_menu() {
   $items = array();
-  $items['lid-worden'] = array(
-    'title' => 'Lid worden',
-    'type' => MENU_NORMAL_ITEM,
-    'page callback' => 'memberform_get_form',
-    'page arguments' => array('memberform_form', 'membership'),
-    'file' => 'memberform_form.inc',
-    'access callback' => TRUE,
-  );
+  $form_names = memberform_get_formnames();
+  foreach ($form_names as $form_name) {
+    $settings_callback = 'memberform_' . $form_name . '_settings';
+    $path_name = $settings_callback('path_name');
+    $form_title = $settings_callback('form_title');
+    $items[$path_name] = array(
+      'title' => $form_title,
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'memberform_get_form',
+      'page arguments' => array('memberform_form', $form_name),
+      'file' => 'memberform_form.inc',
+      'access callback' => TRUE,
+    );
+  }
   return $items;
 }
 
@@ -48,4 +51,21 @@ function memberform_menu() {
  */
 function memberform_get_form($form_callback, $form_name) {
   return drupal_get_form($form_callback, $form_name);
+}
+
+/**
+ * Return the names of the different forms defined in /etc/pages.
+ *
+ * @return array
+ *   List of pagenames.
+ */
+function memberform_get_formnames() {
+  $paths = glob(drupal_get_path('module', 'memberform') . '/multipage_forms/*');
+  foreach ($paths as $path) {
+    $result = preg_match('/^.*\/memberform_([^.]*)_pages.inc$/', $path, $matches);
+    if (!empty($matches[1])) {
+      $form_names[] = $matches[1];
+    }
+  }
+  return $form_names;
 }
