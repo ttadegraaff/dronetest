@@ -159,6 +159,7 @@ function memberform_membership_page_red_form(&$form, &$form_state) {
  */
 function memberform_membership_page_address_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
+  $values = $form_state['values'];
 
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   $countries = country_get_list();
@@ -212,21 +213,23 @@ function memberform_membership_page_address_form(&$form, &$form_state) {
       }
     }
     // Set street value.
-    $value = (!empty($address_data->adres)) ? $address_data->adres : '';
     $form['page_address_street'] = array(
       '#title'         => 'Straat',
       '#type'          => 'textfield',
       '#required'      => TRUE,
-      '#value' => $value,
     );
     // Set locality value.
-    $value = (!empty($address_data->woonplaats)) ? $address_data->woonplaats : '';
     $form['page_address_locality'] = array(
       '#title'         => 'Plaats',
       '#type'          => 'textfield',
       '#required'      => TRUE,
-      '#value' => $value,
     );
+    if (!empty($address_data->adres)) {
+      $form['page_address_street']['#default_value'] = $address_data->adres;
+    };
+    if (!empty($address_data->woonplaats)) {
+      $form['page_address_locality']['#default_value'] = $address_data->woonplaats;
+    };
   }
   else {
     // International address.

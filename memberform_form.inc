@@ -78,11 +78,6 @@ function memberform_form($form, &$form_state, $form_name) {
         if (isset($storage['values'][$storage['current_page']][$key])) {
           $form[$key]['#default_value'] = $storage['values'][$storage['current_page']][$key];
         }
-        else {
-          if (empty($form[$key]['#default_value'])) {
-            $form[$key]['#default_value'] = NULL;
-          }
-        }
         // Add error messages.
         if (isset($form_state['form_errors'][$key])) {
           $form[$key]['#prefix'] = '<div class="memberform validation-error">';
@@ -171,11 +166,16 @@ function memberform_form_post_custom_validate($form, &$form_state) {
   $storage = &$form_state['storage'];
 
   // Store values.
-  $storage['values'][$storage['current_page']] = $values;
+  foreach ($values as $key => $value) {
+    if (!empty($value)) {
+      $storage['values'][$storage['current_page']][$key] = $value;
+    }
+  }
   memberform_store_form_data($storage);
 
   $form_state['form_errors'] = form_get_errors();
   memberform_remove_errors($form_state);
+  unset($form_state['input']);
 }
 
 /**
@@ -193,7 +193,11 @@ function memberform_form_submit($form, &$form_state) {
   $storage = &$form_state['storage'];
 
   // Store values.
-  $storage['values'][$storage['current_page']] = $values;
+  foreach ($values as $key => $value) {
+    if (!empty($value)) {
+      $storage['values'][$storage['current_page']][$key] = $value;
+    }
+  }
 
   // Process previous, next page.
   $trigger = $form_state['triggering_element']['#name'];
