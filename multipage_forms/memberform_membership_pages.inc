@@ -88,7 +88,7 @@ function memberform_membership_page_quickfinish_form(&$form, &$form_state) {
  * Form definition for person details page.
  */
 function memberform_membership_page_person_details_form(&$form, &$form_state) {
-  $storage = $form_state['storage'];
+  $storage = &$form_state['storage'];
 
   // Split name given in start page.
   $parts = array('first_name', 'middle_name', 'last_name');
@@ -97,6 +97,7 @@ function memberform_membership_page_person_details_form(&$form, &$form_state) {
     $split_name = memberform_split_name($storage['values']['start']['page_start_name']);
     foreach ($parts as $part) {
       $$part = isset($split_name[$part]) ? $split_name[$part] : '';
+      $storage['values']['person_details']['page_person_details_' . $part] = $$part;
     }
   }
   else {
@@ -110,20 +111,20 @@ function memberform_membership_page_person_details_form(&$form, &$form_state) {
     '#type' => 'textfield',
     '#title' => 'Voornaam',
     '#required' => TRUE,
-    '#value' => $first_name,
+    '#default_value' => $first_name,
   );
 
   $form['page_person_details_middle_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Tussenvoegsel',
-    '#value' => $middle_name,
+    '#default_value' => $middle_name,
   );
 
   $form['page_person_details_last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Achternaam',
     '#required' => TRUE,
-    '#value' => $last_name,
+    '#default_value' => $last_name,
   );
 
   $form['page_person_details_birth_date'] = array(
