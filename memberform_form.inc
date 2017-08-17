@@ -10,7 +10,10 @@
  */
 function memberform_form($form, &$form_state, $form_name) {
   $values = isset($form_state['values']) ? $form_state['values'] : array();
-  $storage = memberform_get_storage();
+  $storage = memberform_get_storage(NULL, $form_name);
+
+  // Store form name.
+  $storage['form_name'] = $form_name;
 
   // Set default page.
   if (!isset($storage['current_page'])) {
@@ -77,6 +80,11 @@ function memberform_form($form, &$form_state, $form_name) {
         // Add default values.
         if (isset($storage['values'][$storage['current_page']][$key])) {
           $form[$key]['#default_value'] = $storage['values'][$storage['current_page']][$key];
+        }
+        else {
+          if (empty($form[$key]['#default_value'])) {
+            $form[$key]['#default_value'] = '';
+          }
         }
         // Add error messages.
         if (isset($form_state['form_errors'][$key])) {
@@ -223,7 +231,7 @@ function memberform_form_submit($form, &$form_state) {
   memberform_store_form_data($storage);
 
   // Store submission id in session.
-  $_SESSION['memberform']['sid'] = $storage['sid'];
+  $_SESSION['memberform'][$storage['form_name']]['sid'] = $storage['sid'];
 
   $form_state['rebuild'] = TRUE;
 }

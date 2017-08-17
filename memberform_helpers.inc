@@ -42,10 +42,10 @@ function memberform_remove_errors(&$form_state) {
  * @return array $storage
  *   Stored form data.
  */
-function memberform_get_storage($sid = NULL) {
+function memberform_get_storage($sid = NULL, $form_name = '') {
   $storage = array();
-  if (!isset($sid) && isset($_SESSION['memberform']['sid'])) {
-    $sid = $_SESSION['memberform']['sid'];
+  if (!isset($sid) && isset($_SESSION['memberform'][$form_name]['sid'])) {
+    $sid = $_SESSION['memberform'][$form_name]['sid'];
   }
 
   if (isset($sid)) {
