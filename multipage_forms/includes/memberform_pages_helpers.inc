@@ -170,3 +170,13 @@ function memberform_check_iban($iban) {
     return FALSE;
   }
 }
+
+/**
+ * Returns age.
+ */
+function memberform_get_age($birthdate) {
+  $birthday_date = new DateTime($birthdate);
+  $today   = new DateTime('today');
+  $age = $birthday_date->diff($today)->y;
+  return $age;
+}

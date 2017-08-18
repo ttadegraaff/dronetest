@@ -8,9 +8,10 @@
  * Include form page definitions.
  */
 module_load_include('inc', 'memberform', 'memberform_helpers');
-module_load_include('inc', 'memberform', 'memberform_pages_helpers');
 
 // Include form definition files in /pages.
+module_load_include('inc', 'memberform', 'multipage_forms/includes/memberform_pages_helpers');
+module_load_include('inc', 'memberform', 'multipage_forms/includes/memberform_shared_forms');
 $form_names = memberform_get_formnames();
 foreach ($form_names as $form_name) {
   module_load_include('inc', 'memberform', 'multipage_forms/memberform_' . $form_name . '_pages');

@@ -49,7 +49,7 @@ function memberform_form($form, &$form_state, $form_name) {
   $file_path = drupal_get_path('module', 'memberform') . '/header_images/' . $storage['current_page'] . '.jpg';
   if (file_exists($file_path)) {
     $form['header'] = array(
-      '#markup' => '<div class="form_header"><img src="' . drupal_get_path('module', 'memberform') . '/header_images/' . $storage['current_page'] . '.jpg" /></div>',
+      '#markup' => '<div class="form_header"><img src="/' . drupal_get_path('module', 'memberform') . '/header_images/' . $storage['current_page'] . '.jpg" /></div>',
     );
   }
 
