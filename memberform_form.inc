@@ -179,7 +179,12 @@ function memberform_form_post_custom_validate($form, &$form_state) {
       $storage['values'][$storage['current_page']][$key] = $value;
     }
   }
+
+  // Store data.
   memberform_store_form_data($storage);
+
+  // Store submission id in session.
+  $_SESSION['memberform'][$storage['form_name']]['sid'] = $storage['sid'];
 
   $form_state['form_errors'] = form_get_errors();
   memberform_remove_errors($form_state);
