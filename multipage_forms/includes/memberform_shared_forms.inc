@@ -243,6 +243,59 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
 }
 
 /**
+ * Form definition for payment page.
+ */
+function memberform_shared_page_payment_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+  $form_name = $storage['form_name'];
+  $is_member = reset($storage['values']['person_details']['page_person_details_spmember']) === 'is_member';
+
+  switch ($form_name) {
+    case 'spanning':
+      if ($is_member) {
+        $auto_price_message = 'Automatische incasso, € 12 per jaar (niet leden betalen € 20)';
+        $accept_price_message = 'Acceptgiro, € 12 per jaar (niet leden betalen € 24)';
+      }
+      else {
+        $auto_price_message = 'Automatische incasso € 20 (€ 12 voor leden)';
+        $accept_price_message = 'Acceptgiro € 24 (€ 12 voor leden)';
+      }
+      break;
+
+    case 'tribune':
+      $auto_price_message = 'Automatische incasso, € 5 per kwartaal';
+      $accept_price_message = 'Acceptgiro, € 24 per jaar';
+      break;
+  }
+  $form['page_payment_payment_type'] = array(
+    '#title' => 'Betalingsgegevens',
+    '#type' => 'radios',
+    '#required' => TRUE,
+    '#options' => array(
+      'auto' => $auto_price_message,
+      'accept' => $accept_price_message,
+    ),
+    '#name' => 'page_payment_payment_type',
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+
+  $form['page_payment_iban'] = array(
+    '#title' => 'Wat is je bankrekeningnummer?',
+    '#type' => 'textfield',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="page_payment_payment_type"]' => array(
+          'value' => 'auto',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
  * Form definition for gift page.
  *
  * Add images in module folder gift_images like book.jpg.
@@ -286,7 +339,8 @@ function memberform_shared_page_gift_form(&$form, &$form_state, $gift_data) {
 function memberform_shared_page_summary_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   $values = $storage['values'];
-  $page_titles = memberform_membership_settings('titles');
+  $settings_callback = 'memberform_' . $storage['form_name'] . '_settings';
+  $page_titles = $settings_callback('titles');
 
   $markup = '';
   $rows = array();
@@ -439,6 +493,21 @@ function memberform_shared_validation($form, &$form_state) {
             }
             else {
               $values['page_contribution_iban'] = $iban;
+            }
+          }
+        }
+        break;
+
+      case 'payment':
+        if ($values['page_payment_payment_type'] === 'auto') {
+          $iban = strtoupper($values['page_payment_iban']);
+          $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
+          if ($storage['values']['address']['page_address_country'] === 'NL') {
+            if (!memberform_check_iban($iban)) {
+              form_set_error('page_payment_iban', 'Vul een geldig iban nummer in.');
+            }
+            else {
+              $values['page_payment_iban'] = $iban;
             }
           }
         }
