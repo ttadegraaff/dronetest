@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Shared form elements.
+ */
+
+/**
+ * Form definition for start page.
+ */
 function memberform_shared_page_start_form(&$form, &$form_state) {
   $form['page_start_name'] = array(
     '#type' => 'textfield',
