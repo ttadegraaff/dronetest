@@ -38,41 +38,216 @@ function memberform_schema() {
       ),
     ),
   );
+
+  $schema['memberform_submissions'] = array(
+    'fields'      => array(
+      'id'                   => array(
+        'type' => 'serial',
+      ),
+      'membership_type'      => array(
+        'type'     => 'varchar',
+        'length'   => 10,
+        'nullable' => FALSE,
+        'default'  => 'lid_sp',
+      ),
+      'hash'                 => array(
+        'type'   => 'varchar',
+        'length' => 32,
+      ),
+      'initials'             => array(
+        'type'   => 'varchar',
+        'length' => 15,
+      ),
+      'firstname'            => array(
+        'type'   => 'varchar',
+        'length' => 150,
+      ),
+      'middlename'           => array(
+        'type'   => 'varchar',
+        'length' => 20,
+      ),
+      'lastname'             => array(
+        'type'   => 'varchar',
+        'length' => 150,
+      ),
+      'gender'               => array(
+        'type'   => 'varchar',
+        'length' => 1,
+      ),
+      'birthdate'            => array(
+        'type'   => 'varchar',
+        'length' => 20,
+      ),
+      'email'                => array(
+        'type'   => 'varchar',
+        'length' => 120,
+      ),
+      'phone'                => array(
+        'type'   => 'varchar',
+        'length' => 25,
+      ),
+      'phone_mobile'         => array(
+        'type'   => 'varchar',
+        'length' => 25,
+      ),
+      'country'              => array(
+        'type'   => 'varchar',
+        'length' => 100,
+      ),
+      'zipcode'              => array(
+        'type'   => 'varchar',
+        'length' => 20,
+      ),
+      'housenumber'          => array(
+        'type'   => 'varchar',
+        'length' => 10,
+      ),
+      'housenumber_suffix'   => array(
+        'type'   => 'varchar',
+        'length' => 20,
+      ),
+      'street'               => array(
+        'type'   => 'varchar',
+        'length' => 200,
+      ),
+      'city'                 => array(
+        'type'   => 'varchar',
+        'length' => 200,
+      ),
+      'contribution'         => array(
+        'type'   => 'numeric',
+        'precision' => 8,
+        'scale' => 2,
+      ),
+      'bank_account'         => array(
+        'type'   => 'varchar',
+        'length' => 32,
+      ),
+      'payment_method'       => array(
+        'type'   => 'varchar',
+        'length' => 20,
+      ),
+      'welcome_present_sp'   => array(
+        'type'   => 'varchar',
+        'length' => 20,
+      ),
+      'welcome_present_rood' => array(
+        'type'   => 'varchar',
+        'length' => 20,
+      ),
+      'source'   => array(
+        'type'   => 'varchar', 'length' => 100,
+      ),
+      'created'              => array(
+        'type'     => 'int',
+        'size'   => 'big',
+        'nullable' => FALSE,
+      ),
+      'verified'             => array(
+        'type'     => 'int',
+        'size'   => 'big',
+        'nullable' => TRUE,
+      ),
+      'reminded'             => array(
+        'type'     => 'int',
+        'size'   => 'big',
+        'nullable' => TRUE,
+      ),
+      'submitted'            => array(
+        'type'     => 'int',
+        'size'   => 'big',
+        'nullable' => TRUE,
+      ),
+      'errormsg'             => array(
+        'type'     => 'text',
+        'nullable' => TRUE,
+      ),
+      'flags'             => array(
+        'type'     => 'text',
+        'nullable' => TRUE,
+      ),
+      'contact_id'           => array(
+        'type'     => 'int',
+        'size'   => 'big',
+        'nullable' => TRUE,
+      ),
+      'note' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'A note to store in CiviCRM.',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  $schema['memberform_gifts'] = array(
+    'fields'      => array(
+      'id'              => array(
+        'type' => 'serial',
+      ),
+      'membership_type' => array(
+        'type'     => 'varchar',
+        'length'   => 10,
+        'nullable' => FALSE,
+        'default'  => 'lid_sp',
+      ),
+      'internal_name'   => array(
+        'type'   => 'varchar',
+        'length' => 150,
+      ),
+      'name'            => array(
+        'type'   => 'varchar',
+        'length' => 150,
+      ),
+      'image' => array(
+        'type' => 'int',
+        'size' => 'normal',
+      ),
+      'position'        => array(
+        'type'   => 'int',
+        'size' => 'big',
+      ),
+      'show_website'     => array(
+        'type'   => 'int',
+        'size' => 'tiny',
+        'nullable' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
 }
 
 /**
  * Add memberform table.
  */
 function memberform_update_7001() {
-  $table = array(
-    'description' => 'Stores memberform values.',
-    'fields' => array(
-      'sid' => array(
-        'description' => 'Submission id.',
-        'type' => 'serial',
-        'size' => 'big',
-        'not null' => TRUE,
-      ),
-      'hash' => array(
-        'description' => 'Unique submission hash.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-      ),
-      'form_values' => array(
-        'description' => 'The submission values (json encoded).',
-        'type' => 'blob',
-        'size' => 'normal',
-      ),
-    ),
-    'primary key' => array(
-      'sid',
-    ),
-    'unique keys' => array(
-      'hash' => array(
-        'hash',
-      ),
-    ),
-  );
+  $schema = memberform_schema();
+  $table = $schema['memberform_storage'];
   db_create_table('memberform_storage', $table);
+}
+
+/**
+ * Add admin tables.
+ */
+function memberform_update_7002() {
+  $schema = memberform_schema();
+
+  $table = $schema['memberform_submissions'];
+  db_create_table('memberform_submissions', $table);
+
+  $table = $schema['memberform_gifts'];
+  db_create_table('memberform_gifts', $table);
+}
+
+/**
+ * Add newcol field to {mytable1} table.
+ */
+function memberform_update_7003() {
+  $schema = memberform_schema();
+  $spec = $schema['memberform_gifts']['image'];
+  db_add_field('memberform_gifts', 'image', $spec);
+  $spec = $schema['memberform_submissions']['note'];
+  db_add_field('memberform_submissions', 'note', $spec);
 }

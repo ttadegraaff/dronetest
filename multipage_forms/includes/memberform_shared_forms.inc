@@ -74,10 +74,27 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
     '#title'           => 'Geboortedatum',
     '#type'            => 'date_select',
     '#date_format'     => 'd-m-Y',
-    '#date_year_range' => '-100:-15',
+    '#date_year_range' => '-100:-14',
     '#required' => TRUE,
   );
 
+}
+
+/**
+ * Form definition for red intern page.
+ */
+function memberform_shared_page_red_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
+
+  $form['page_red_membership'] = array(
+    '#title' => 'Rood lidmaatschap',
+    '#type' => 'radios',
+    '#options' => array(
+      'sp_and_red_member' => 'Ja, ik wil ook lid worden van ROOD, Jong in de SP!',
+      'sp_member' => 'Nee, ik wil alleen lid worden van de SP',
+    ),
+    '#required' => TRUE,
+  );
 }
 
 /**
@@ -300,31 +317,41 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
  *
  * Add images in module folder gift_images like book.jpg.
  */
-function memberform_shared_page_gift_form(&$form, &$form_state, $gift_data) {
+function memberform_shared_page_gift_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
+  $memberships = array();
+  $gift_options = array();
+  $image_style = variable_get('memberform_gift_image_style', 'thumbnail');
 
-  foreach ($gift_data as $gift_type => $gift_type_data) {
-    // Show image.
-    if (empty($storage['values']['gift'])) {
-      $gift_key = $gift_type_data['default'];
+  $memberships = memberform_shared_page_map_memberships($form_state);
+
+  foreach ($memberships as $membership) {
+    $gift_options = array();
+    $gift_map = array();
+    // Get gifts data.
+    $select = "SELECT * FROM {memberform_gifts} WHERE membership_type = :membership AND show_website = 1 ORDER BY position";
+    $gifts = db_query($select, array(':membership' => $membership));
+    foreach ($gifts as $key => $gift) {
+      // Create gift mapping.
+      $gift_map[$gift->id] = $gift;
+      // Create gift options for select list.
+      $gift_options[$gift->id] = $gift->name;
     }
-    else {
-      $gift_key = $storage['values']['gift']['page_gift_select_' . $gift_type];
-    }
-    $image = $gift_type_data['gifts'][$gift_key]['image'];
-    $form['page_gift_image_' . $gift_type . '_' . $gift_key] = array(
-      '#markup' => '<div class="image"><img src="/' . drupal_get_path('module', 'memberform') . '/multipage_forms/gift_images/' . $image . '"/></div>',
+    // Default selected gift.
+    $selected_gift_id = empty($storage['values']['gift']['page_gift_select_' . $membership]) ? key($gift_options) : $storage['values']['gift']['page_gift_select_' . $membership];
+    $selected_gift = $gift_map[$selected_gift_id];
+    // Create image code.
+    $image = file_load($selected_gift->image);
+    $image_styled = empty($image) ? '' : theme('image_style', array('style_name' => $image_style, 'path' => $image->uri));
+    $form['page_gift_image_' . $selected_gift->id] = array(
+      '#markup' => $image_styled,
     );
     // Show gift selection form.
-    $options = array();
-    foreach ($gift_type_data['gifts'] as $gift_key => $gift_data) {
-      $options[$gift_key] = $gift_data['title'];
-    }
-    $form['page_gift_select_' . $gift_type] = array(
-      '#title' => 'Welkomstgeschenk ' . $gift_type_data['title'],
+    $form['page_gift_select_' . $membership] = array(
+      '#title' => 'Welkomstgeschenk ' . $membership,
       '#type' => 'radios',
-      '#options' => $options,
-      '#default_value' => $gift_type_data['default'],
+      '#options' => $gift_options,
+      '#default_value' => $selected_gift_id,
       '#ajax' => array(
         'wrapper' => 'memberform_form_wrapper',
         'callback' => 'memberform_ajax_callback',
@@ -393,22 +420,31 @@ function memberform_shared_page_summary_form(&$form, &$form_state) {
     }
   }
 
-  // Add extra data.
-  if (!empty($storage['extra_data'])) {
-    foreach ($storage['extra_data'] as $data) {
+  // Add membership info.
+  if (!empty($storage['membership_type'])) {
+    $memberships = memberform_shared_page_map_memberships($form_state);
+    if (!empty($memberships)) {
       $rows[] = array(
         'data' => array(
           0 => array(
-            'data' => $data['title'],
+            'data' => 'Lidmaatschappen',
             'header' => TRUE,
             'colspan' => 2,
           ),
         ),
         'no_striping' => TRUE,
       );
-      foreach ($data['items'] as $rowdata) {
-        $rows[] = array($rowdata['question']['display'], $rowdata['answer']['display']);
+      $titles = array(
+        'lid_sp' => 'SP',
+        'lid_rood' => 'ROOD',
+        'tribune' => 'Tribune',
+        'spanning' => 'Spanning',
+      );
+      foreach ($memberships as $membership) {
+        $membership_titles[] = $titles[$membership];
       }
+      $memberships_line = memberform_natural_language_join($membership_titles, 'en');
+      $rows[] = array('', $memberships_line);
     }
   }
 
@@ -439,6 +475,13 @@ function memberform_shared_validation($form, &$form_state) {
         }
         if (empty($values['page_start_email']) && empty($values['page_start_phone'])) {
           form_set_error('page_start_phone', 'Geef tenminste een e-mailadres of telefoonnummer op zodat we je kunnen bereiken.');
+        }
+        break;
+
+      case 'person_details':
+        $age = memberform_get_age($values['page_person_details_birth_date']);
+        if ($age < 14) {
+          form_set_error('page_person_details_birth_date', 'Je bent jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
         }
         break;
 
@@ -514,4 +557,63 @@ function memberform_shared_validation($form, &$form_state) {
         break;
     }
   }
+}
+
+/**
+ * Maps form values to memberships array.
+ */
+function memberform_shared_page_map_memberships($form_state) {
+  $memberships = array();
+  if (!empty($form_state['storage']['membership_type'])) {
+    $storage = $form_state['storage'];
+    $memberships = array();
+    if (isset($storage['membership_type'])) {
+      switch ($storage['membership_type']) {
+        case 'sp_and_red_member':
+          $memberships = array(
+            'lid_rood',
+            'lid_sp',
+          );
+          break;
+
+        case 'red_member':
+          $memberships = array(
+            'lid_rood',
+          );
+          break;
+
+        case 'sp_member':
+          $memberships = array(
+            'lid_sp',
+          );
+          break;
+
+        case 'tribune':
+          $memberships = array(
+            'tribune',
+          );
+          break;
+
+        case 'spanning':
+          $memberships = array(
+            'spanning',
+          );
+          break;
+      }
+    }
+  }
+  return $memberships;
+}
+
+/**
+ * Join a string with a natural language conjunction at the end.
+ *
+ * Https://gist.github.com/angry-dan/e01b8712d6538510dd9c.
+ */
+function memberform_natural_language_join(array $list, $conjunction = 'and') {
+  $last = array_pop($list);
+  if ($list) {
+    return implode(', ', $list) . ' ' . $conjunction . ' ' . $last;
+  }
+  return $last;
 }

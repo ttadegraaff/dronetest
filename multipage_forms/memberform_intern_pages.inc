@@ -9,7 +9,7 @@
  *
  *   Example:
  *
- *   function memberform_membership_page_start_form(&$form, $storage, $values) {
+ *   function memberform_intern_page_start_form(&$form, $storage, $values) {
  *     $form['page_start_choice'] = array(
  *       '#type' => 'radios',
  *       '#title' => 'Maak een keuze',
@@ -33,14 +33,11 @@
  * @return Variable value.
  *   Returns variable value.
  */
-function memberform_membership_settings($variable_name) {
+function memberform_intern_settings($variable_name) {
   $settings = array(
-    'path_name' => 'aanmelden/lid',
-    'form_title' => 'Lid worden',
-    'no_back_pages' => array(
-      'quickfinish',
-      'person_details',
-    ),
+    'path_name' => 'aanmelden/intern',
+    'form_title' => 'Aanmelden intern',
+    'no_back_pages' => array(),
     'titles' => array(
       'start' => 'Contactgegevens',
       'person_details' => 'Persoonsgegevens',
@@ -57,42 +54,42 @@ function memberform_membership_settings($variable_name) {
 /**
  * Form definition for start page.
  */
-function memberform_membership_page_start_form(&$form, &$form_state) {
+function memberform_intern_page_start_form(&$form, &$form_state) {
   memberform_shared_page_start_form($form, $form_state);
 }
 
 /**
  * Form definition for thanks phone page.
  */
-function memberform_membership_page_quickfinish_form(&$form, &$form_state) {
+function memberform_intern_page_quickfinish_form(&$form, &$form_state) {
   memberform_shared_page_quickfinish_form($form, $form_state);
 }
 
 /**
  * Form definition for person details page.
  */
-function memberform_membership_page_person_details_form(&$form, &$form_state) {
+function memberform_intern_page_person_details_form(&$form, &$form_state) {
   memberform_shared_page_person_details_form($form, $form_state);
 }
 
 /**
- * Form definition for red membership page.
+ * Form definition for red intern page.
  */
-function memberform_membership_page_red_form(&$form, &$form_state) {
+function memberform_intern_page_red_form(&$form, &$form_state) {
   memberform_shared_page_red_form($form, $form_state);
 }
 
 /**
  * Form definition for address page.
  */
-function memberform_membership_page_address_form(&$form, &$form_state) {
+function memberform_intern_page_address_form(&$form, &$form_state) {
   memberform_shared_page_address_form($form, $form_state);
 }
 
 /**
  * Form definition for contribution page.
  */
-function memberform_membership_page_contribution_form(&$form, &$form_state) {
+function memberform_intern_page_contribution_form(&$form, &$form_state) {
   memberform_shared_page_contribution_form($form, $form_state);
 }
 
@@ -101,21 +98,21 @@ function memberform_membership_page_contribution_form(&$form, &$form_state) {
  *
  * Add images in module folder gift_images like book.jpg.
  */
-function memberform_membership_page_gift_form(&$form, &$form_state) {
+function memberform_intern_page_gift_form(&$form, &$form_state) {
   memberform_shared_page_gift_form($form, $form_state);
 }
 
 /**
  * Form definition for summary page.
  */
-function memberform_membership_page_summary_form(&$form, &$form_state) {
+function memberform_intern_page_summary_form(&$form, &$form_state) {
   memberform_shared_page_summary_form($form, $form_state);
 }
 
 /**
  * Form definition for thanks page.
  */
-function memberform_membership_page_thanks_form(&$form, &$form_state) {
+function memberform_intern_page_thanks_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   if (!empty($storage['values']['person_details']['page_person_details_first_name'])) {
     $name = $storage['values']['person_details']['page_person_details_first_name'];
@@ -131,7 +128,7 @@ function memberform_membership_page_thanks_form(&$form, &$form_state) {
 /**
  * Validation for member form pages.
  */
-function memberform_membership_page_form_validate($form, &$form_state) {
+function memberform_intern_page_form_validate($form, &$form_state) {
   memberform_shared_validation($form, $form_state);
 
   $values = &$form_state['values'];
@@ -157,7 +154,7 @@ function memberform_membership_page_form_validate($form, &$form_state) {
  * can be set: $storage['thanks_page'] to TRUE and the next page will have no
  * submit buttons.
  */
-function memberform_membership_page_form_submit($form, &$form_state) {
+function memberform_intern_page_form_submit($form, &$form_state) {
   if (isset($form_state['form_errors'])) {
     return;
   }

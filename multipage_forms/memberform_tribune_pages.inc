@@ -171,22 +171,6 @@ function memberform_tribune_page_form_submit($form, &$form_state) {
           }
           // Store membership type.
           $storage['membership_type'] = 'tribune';
-          // Set spanning membership data to display in summary.
-          $storage['extra_data']['tribune'] = array(
-            'title' => 'Lidmaatschap',
-            'items' => array(
-              array(
-                'question' => array(
-                  'key' => 'membership',
-                  'display' => '',
-                ),
-                'answer' => array(
-                  'key' => 'tribune',
-                  'display' => 'Tribune',
-                ),
-              ),
-            ),
-          );
           break;
 
         case 'quickfinish':

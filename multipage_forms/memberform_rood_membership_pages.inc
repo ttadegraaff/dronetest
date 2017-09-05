@@ -69,6 +69,13 @@ function memberform_rood_membership_page_quickfinish_form(&$form, &$form_state) 
 }
 
 /**
+ * Form definition for red membership page.
+ */
+function memberform_rood_membership_page_red_form(&$form, &$form_state) {
+  memberform_shared_page_red_form($form, $form_state);
+}
+
+/**
  * Form definition for person details page.
  */
 function memberform_rood_membership_page_person_details_form(&$form, &$form_state) {
@@ -97,71 +104,7 @@ function memberform_rood_membership_page_contribution_form(&$form, &$form_state)
  * Add images in module folder gift_images like book.jpg.
  */
 function memberform_rood_membership_page_gift_form(&$form, &$form_state) {
-
-  $gifts = array(
-    'sp' => array(
-      'title' => 'SP',
-      'default' => 'book',
-      'gifts' => array(
-        'book' => array(
-          'title' => 'Boek Emile Roemer - Het kan wel',
-          'image' => 'book-thumb.jpg',
-        ),
-        'usbstick' => array(
-          'title' => 'SP usb stick 4G (Met SP informatie)',
-          'image' => 'usbstick-thumb.jpg',
-        ),
-        'none' => array(
-          'title' => 'Geen Welkomstgeschenk',
-          'image' => 'none-thumb.jpg',
-        ),
-      ),
-    ),
-    'red' => array(
-      'title' => 'ROOD',
-      'default' => 'shirt-male-s',
-      'gifts' => array(
-        'shirt-male-s' => array(
-          'title' => 'T-shirt heren S',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'shirt-male-m' => array(
-          'title' => 'T-shirt heren M',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'shirt-male-l' => array(
-          'title' => 'T-shirt heren L',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'shirt-male-xl' => array(
-          'title' => 'T-shirt heren XL',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'shirt-female-s' => array(
-          'title' => 'T-shirt dames S',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'shirt-female-m' => array(
-          'title' => 'T-shirt dames M',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'shirt-female-L' => array(
-          'title' => 'T-shirt dames L',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'shirt-female-xl' => array(
-          'title' => 'T-shirt dames XL',
-          'image' => 'red-shirt-thumb.jpg',
-        ),
-        'none' => array(
-          'title' => 'Geen Welkomstgeschenk',
-          'image' => 'none.jpg',
-        ),
-      ),
-    ),
-  );
-
-  memberform_shared_page_gift_form($form, $form_state, $gifts);
+  memberform_shared_page_gift_form($form, $form_state);
 }
 
 /**
@@ -252,24 +195,19 @@ function memberform_rood_membership_page_form_submit($form, &$form_state) {
           break;
 
         case 'person_details':
-          // Set next page.
-          $storage['next_page'] = 'address';
-
           // Store membership type (sp_and_red or sp).
-
           $age = memberform_get_age($values['page_person_details_birth_date']);
-          $storage['extra_data']['membership']['title'] = 'Type lidmaatschap';
-          $storage['extra_data']['membership']['items'][0]['question'] = array('key' => 'membership', 'display' => 'Lidmaatschap');
           if ($age < 16) {
-            $storage['extra_data']['membership']['items'][0]['answer'] = array('key' => 'red', 'display' => 'Rood');
+            $storage['membership_type'] = 'red_member';
           }
           else {
-            $storage['extra_data']['membership']['items'][0]['answer'] = array('key' => 'sp_and_red', 'display' => 'SP en Rood');
+            $storage['next_page'] = 'red';
           }
           break;
 
         case 'red':
           $storage['next_page'] = 'address';
+          $storage['membership_type'] = $values['page_red_membership'];
           break;
 
         case 'address':

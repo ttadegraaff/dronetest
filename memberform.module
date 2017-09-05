@@ -36,7 +36,115 @@ function memberform_menu() {
       'access callback' => TRUE,
     );
   }
+
+  $items['admin/config/sp/aanmelden'] = [
+    'title'            => 'Aanmeldformulieren',
+    'description'      => 'Aanmeldingen bekijken en de formulieren instellen.',
+    'type'             => MENU_NORMAL_ITEM,
+    'page callback'    => 'memberform_view_submissions',
+    'access callback'  => 'user_access',
+    'access arguments' => ['administer signup forms'],
+    'file'             => 'memberform_page_admin.inc',
+  ];
+
+  $items['admin/config/sp/aanmelden/submissions'] = [
+    'title'            => 'Inschrijvingen',
+    'type'             => MENU_DEFAULT_LOCAL_TASK,
+    'access callback'  => 'user_access',
+    'access arguments' => ['access pending submissions'],
+    'weight'           => -2,
+  ];
+
+  $items['admin/config/sp/aanmelden/submission/%'] = [
+    'title'            => 'Inschrijving bekijken',
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'memberform_submission_details',
+    'page arguments'   => [5],
+    'access callback'  => 'user_access',
+    'access arguments' => ['access pending submissions'],
+    'file'             => 'memberform_page_admin.inc',
+    'weight'           => -1,
+  ];
+
+  $items['admin/config/sp/aanmelden/gifts'] = [
+    'title'            => 'Welkomstgeschenken',
+    'type'             => MENU_LOCAL_TASK,
+    'page callback'    => 'memberform_gifts_view',
+    'access callback'  => 'user_access',
+    'access arguments' => ['administer signup forms'],
+    'file'             => 'memberform_page_admin.inc',
+    'weight'           => 1,
+  ];
+
+  $items['admin/config/sp/aanmelden/gifts/edit'] = [
+    'title'            => 'Geschenk toevoegen',
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => ['memberform_gifts_form'],
+    'access callback'  => 'user_access',
+    'access arguments' => ['administer signup forms'],
+    'file'             => 'memberform_page_admin.inc',
+    'weight'           => 2,
+  ];
+
+  $items['admin/config/sp/aanmelden/gifts/edit/%'] = [
+    'title'            => 'Geschenk bewerken',
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => ['memberform_gifts_form', 6],
+    'access callback'  => 'user_access',
+    'access arguments' => ['administer signup forms'],
+    'file'             => 'memberform_page_admin.inc',
+    'weight'           => 3,
+  ];
+
+  $items['admin/config/sp/aanmelden/settings'] = [
+    'title'            => 'Instellingen',
+    'description'      => 'Instellingen voor de aanmeldformulieren',
+    'type'             => MENU_LOCAL_TASK,
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => ['memberform_admin_settings_form'],
+    'access callback'  => 'user_access',
+    'access arguments' => ['administer signup forms'],
+    'file'             => 'memberform_page_admin.inc',
+    'weight'           => 12,
+  ];
+
+  $items['admin/config/sp/aanmelden/submit'] = [
+    'title'            => 'Wachtende inschrijvingen verwerken',
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'memberform_admin_submit_pending',
+    'access callback'  => 'user_access',
+    'access arguments' => ['access pending submissions'],
+    'file'             => 'memberform_page_admin.inc',
+    'weight'           => 13,
+  ];
+
   return $items;
+}
+
+/**
+ * Implements hook permission.
+ */
+function memberform_permission() {
+  return
+    [
+      'administer signup forms' =>
+        [
+          'title'       => t('Aanmeldformulieren beheren'),
+          'description' => t('Beheer instellingen en welkomstgeschenken voor de aanmeldformulieren.'),
+        ],
+    'access pending submissions' =>
+    [
+      'title'       => t('Wachtende aanmeldingen bekijken'),
+      'description' => t('Bekijk en synchroniseer wachtende aanmeldingen.'),
+    ],
+    'access internal signup form' =>
+    [
+      'title'       => t('Intern aanmeldformulier'),
+      'description' => t('Toegang tot intern aanmeldformulier.'),
+    ],
+  ];
 }
 
 /**
@@ -52,21 +160,4 @@ function memberform_menu() {
  */
 function memberform_get_form($form_callback, $form_name) {
   return drupal_get_form($form_callback, $form_name);
-}
-
-/**
- * Return the names of the different forms defined in /etc/pages.
- *
- * @return array
- *   List of pagenames.
- */
-function memberform_get_formnames() {
-  $paths = glob(drupal_get_path('module', 'memberform') . '/multipage_forms/*');
-  foreach ($paths as $path) {
-    $result = preg_match('/^.*\/memberform_([^.]*)_pages.inc$/', $path, $matches);
-    if (!empty($matches[1])) {
-      $form_names[] = $matches[1];
-    }
-  }
-  return $form_names;
 }

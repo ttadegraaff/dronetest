@@ -171,22 +171,6 @@ function memberform_spanning_page_form_submit($form, &$form_state) {
           }
           // Store membership type.
           $storage['membership_type'] = 'spanning';
-          // Set spanning membership data to display in summary.
-          $storage['extra_data']['spanning'] = array(
-            'title' => 'Lidmaatschap',
-            'items' => array(
-              array(
-                'question' => array(
-                  'key' => 'membership',
-                  'display' => '',
-                ),
-                'answer' => array(
-                  'key' => 'spanning',
-                  'display' => 'Spanning',
-                ),
-              ),
-            ),
-          );
           break;
 
         case 'quickfinish':

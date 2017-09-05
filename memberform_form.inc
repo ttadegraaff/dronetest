@@ -206,6 +206,7 @@ function memberform_form_submit($form, &$form_state) {
   $storage = &$form_state['storage'];
 
   // Store values.
+  unset($storage['values'][$storage['current_page']]);
   foreach ($values as $key => $value) {
     if (!empty($value)) {
       $storage['values'][$storage['current_page']][$key] = $value;
