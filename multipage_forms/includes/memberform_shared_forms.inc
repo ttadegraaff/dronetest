@@ -479,9 +479,11 @@ function memberform_shared_validation($form, &$form_state) {
         break;
 
       case 'person_details':
-        $age = memberform_get_age($values['page_person_details_birth_date']);
-        if ($age < 14) {
-          form_set_error('page_person_details_birth_date', 'Je bent jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
+        if (isset($values['page_person_details_birth_date'])) {
+          $age = memberform_get_age($values['page_person_details_birth_date']);
+          if ($age < 14) {
+            form_set_error('page_person_details_birth_date', 'Je bent jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
+          }
         }
         break;
 
