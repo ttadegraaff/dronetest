@@ -148,50 +148,33 @@ function memberform_tribune_page_form_validate($form, &$form_state) {
  * submit buttons.
  */
 function memberform_tribune_page_form_submit($form, &$form_state) {
-  if (isset($form_state['form_errors'])) {
-    return;
-  }
-
   $values = $form_state['values'];
   $storage = &$form_state['storage'];
 
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
 
+  // Store membership.
   switch ($trigger) {
     case 'next_page':
       switch ($storage['current_page']) {
         case 'start':
-          // Set form navigation.
-          if (empty($values['page_start_phone'])) {
-            $storage['next_page'] = 'person_details';
-          }
-          else {
-            $storage['next_page'] = 'quickfinish';
-          }
           // Store membership type.
           $storage['membership_type'] = 'tribune';
           break;
+      }
+      break;
+  }
 
-        case 'quickfinish':
-          $storage['next_page'] = 'person_details';
-          break;
+  memberform_shared_submit($form, $form_state);
 
-        case 'person_details':
-          $storage['next_page'] = 'address';
-          break;
-
+  // Override shared submit.
+  switch ($trigger) {
+    case 'next_page':
+      switch ($storage['current_page']) {
         case 'address':
           $storage['next_page'] = 'payment';
           break;
-
-        case 'payment':
-          $storage['next_page'] = 'summary';
-          break;
-
-        case 'summary':
-          $storage['next_page'] = 'thanks';
-          $storage['thanks_page'] = TRUE;
       }
       break;
   }

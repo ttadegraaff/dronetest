@@ -180,3 +180,141 @@ function memberform_get_age($birthdate) {
   $age = $birthday_date->diff($today)->y;
   return $age;
 }
+
+
+/**
+ * Helper function to cleanup user input amount.
+ */
+function memberform_clean_amount($amount) {
+  $amount = preg_replace('/[^0-9,.]/', '', $amount);
+  $amount = str_replace(',', '.', $amount);
+  if (!is_numeric($amount)) {
+    return FALSE;
+  }
+  else {
+    $amount = number_format($amount, 2, '.', '');
+  }
+  return $amount;
+}
+
+/**
+ * Returns unique hash.
+ */
+function memberform_get_hash($membership_type, $name) {
+  return md5($membership_type . $name . time());
+}
+
+/**
+ * Helper function.
+ */
+function _hv($value) {
+  return empty($value) ? NULL : $value;
+}
+
+/**
+ * Maps form values to memberships array.
+ */
+function memberform_shared_page_map_memberships($form_state, $mapping_type = 'array') {
+  switch ($mapping_type) {
+    case 'array':
+      $memberships = array();
+      break;
+
+    case 'string':
+      $memberships = '';
+      break;
+  }
+
+  if (!empty($form_state['storage']['membership_type'])) {
+    $storage = $form_state['storage'];
+    $memberships = array();
+    if (isset($storage['membership_type'])) {
+      switch ($storage['membership_type']) {
+        case 'sp_and_red_member':
+          switch ($mapping_type) {
+            case 'array':
+              $memberships = array(
+                'lid_rood',
+                'lid_sp',
+              );
+              break;
+
+            case 'string':
+              $memberships = 'lid_sprood';
+              break;
+          }
+          break;
+
+        case 'red_member':
+          switch ($mapping_type) {
+            case 'array':
+              $memberships = array(
+                'lid_rood',
+              );
+              break;
+
+            case 'string':
+              $memberships = 'lid_rood';
+              break;
+          }
+          break;
+
+        case 'sp_member':
+          switch ($mapping_type) {
+            case 'array':
+              $memberships = array(
+                'lid_sp',
+              );
+              break;
+
+            case 'string':
+              $memberships = 'lid_sp';
+              break;
+          }
+          break;
+
+        case 'tribune':
+          switch ($mapping_type) {
+            case 'array':
+              $memberships = array(
+                'tribune',
+              );
+              break;
+
+            case 'string':
+              $memberships = 'tribune';
+              break;
+          }
+          break;
+
+        case 'spanning':
+          switch ($mapping_type) {
+            case 'array':
+              $memberships = array(
+                'spanning',
+              );
+              break;
+
+            case 'string':
+              $memberships = 'spanning';
+              break;
+          }
+          break;
+      }
+    }
+  }
+  return $memberships;
+}
+
+/**
+ * Join a string with a natural language conjunction at the end.
+ *
+ * Https://gist.github.com/angry-dan/e01b8712d6538510dd9c.
+ */
+function memberform_natural_language_join(array $list, $conjunction = 'and') {
+  $last = array_pop($list);
+  if ($list) {
+    return implode(', ', $list) . ' ' . $conjunction . ' ' . $last;
+  }
+  return $last;
+}

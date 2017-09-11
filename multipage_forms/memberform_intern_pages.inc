@@ -130,19 +130,6 @@ function memberform_intern_page_thanks_form(&$form, &$form_state) {
  */
 function memberform_intern_page_form_validate($form, &$form_state) {
   memberform_shared_validation($form, $form_state);
-
-  $values = &$form_state['values'];
-  $storage = &$form_state['storage'];
-
-  // Process trigger.
-  $trigger = $form_state['triggering_element']['#name'];
-  if ($trigger != 'previous_page') {
-
-    switch ($storage['current_page']) {
-      case 'test':
-        break;
-    }
-  }
 }
 
 /**
@@ -155,70 +142,13 @@ function memberform_intern_page_form_validate($form, &$form_state) {
  * submit buttons.
  */
 function memberform_intern_page_form_submit($form, &$form_state) {
-  if (isset($form_state['form_errors'])) {
-    return;
+  memberform_shared_submit($form, $form_state);
+  if (!empty($form_state['storage']['flags'])) {
+    if (strpos($form_state['storage']['flags'], 'INTERN') === FALSE) {
+      $form_state['storage']['flags'] .= ' INTERN';
+    }
   }
-
-  $values = $form_state['values'];
-  $storage = &$form_state['storage'];
-
-  // Process trigger.
-  $trigger = $form_state['triggering_element']['#name'];
-
-  switch ($trigger) {
-    case 'next_page':
-      switch ($storage['current_page']) {
-        case 'start':
-          // Set form navigation.
-          if (empty($values['page_start_phone'])) {
-            $storage['next_page'] = 'person_details';
-          }
-          else {
-            $storage['next_page'] = 'quickfinish';
-          }
-          break;
-
-        case 'quickfinish':
-          $storage['next_page'] = 'person_details';
-          break;
-
-        case 'person_details':
-          $age = memberform_get_age($values['page_person_details_birth_date']);
-          if ($age < 16) {
-            $storage['membership_type'] = 'red_member';
-            $storage['next_page'] = 'address';
-          }
-          elseif ($age <= 27) {
-            $storage['next_page'] = 'red';
-          }
-          else {
-            $storage['next_page'] = 'address';
-            $storage['membership_type'] = 'sp_member';
-          }
-          break;
-
-        case 'red':
-          $storage['membership_type'] = $values['page_red_membership'];
-          $storage['next_page'] = 'address';
-          break;
-
-        case 'address':
-          $storage['next_page'] = 'contribution';
-          break;
-
-        case 'contribution':
-          $storage['next_page'] = 'gift';
-          break;
-
-        case 'gift':
-          $storage['next_page'] = 'summary';
-          $storage['finish_page'] = TRUE;
-          break;
-
-        case 'summary':
-          $storage['next_page'] = 'thanks';
-          $storage['thanks_page'] = TRUE;
-      }
-      break;
+  else {
+    $form_state['storage']['flags'] .= 'INTERN';
   }
 }

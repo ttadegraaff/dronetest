@@ -146,9 +146,6 @@ function memberform_rood_membership_page_form_validate($form, &$form_state) {
     switch ($storage['current_page']) {
       case 'person_details':
         $age = memberform_get_age($values['page_person_details_birth_date']);
-        if ($age < 14) {
-          form_set_error('page_person_details_birth_date', 'Je bent jonger dan 14 jaar en kunt daarom nog geen lid worden van de SP of ROOD.');
-        }
         if ($age > 28) {
           form_set_error('page_person_details_birth_date', 'Je bent ouder dan 28 jaar en kunt daarom geen lid meer worden van ROOD.');
         }
@@ -167,66 +164,23 @@ function memberform_rood_membership_page_form_validate($form, &$form_state) {
  * submit buttons.
  */
 function memberform_rood_membership_page_form_submit($form, &$form_state) {
-  if (isset($form_state['form_errors'])) {
-    return;
-  }
-
   $values = $form_state['values'];
   $storage = &$form_state['storage'];
 
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
 
+  // Store membership.
   switch ($trigger) {
     case 'next_page':
       switch ($storage['current_page']) {
         case 'start':
-          // Set form navigation.
-          if (empty($values['page_start_phone'])) {
-            $storage['next_page'] = 'person_details';
-          }
-          else {
-            $storage['next_page'] = 'quickfinish';
-          }
+          // Store membership type.
+          $storage['membership_type'] = 'red_member';
           break;
-
-        case 'quickfinish':
-          $storage['next_page'] = 'person_details';
-          break;
-
-        case 'person_details':
-          // Store membership type (sp_and_red or sp).
-          $age = memberform_get_age($values['page_person_details_birth_date']);
-          if ($age < 16) {
-            $storage['membership_type'] = 'red_member';
-          }
-          else {
-            $storage['next_page'] = 'red';
-          }
-          break;
-
-        case 'red':
-          $storage['next_page'] = 'address';
-          $storage['membership_type'] = $values['page_red_membership'];
-          break;
-
-        case 'address':
-          $storage['next_page'] = 'contribution';
-          break;
-
-        case 'contribution':
-          $storage['next_page'] = 'gift';
-          break;
-
-        case 'gift':
-          $storage['next_page'] = 'summary';
-          $storage['finish_page'] = TRUE;
-          break;
-
-        case 'summary':
-          $storage['next_page'] = 'thanks';
-          $storage['thanks_page'] = TRUE;
       }
       break;
   }
+
+  memberform_shared_submit($form, $form_state);
 }

@@ -238,7 +238,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
     );
   }
 
-  $form['page_contribution_payment_type'] = array(
+  $form['page_contribution_payment_method'] = array(
     '#title' => 'Hoe wil je je bijdrage voldoen?',
     '#type' => 'radios',
     '#required' => TRUE,
@@ -246,7 +246,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
       'auto' => 'Automatische incasso',
       'accept' => 'Acceptgiro',
     ),
-    '#name' => 'page_contribution_payment_type',
+    '#name' => 'page_contribution_payment_method',
     '#ajax' => array(
       'wrapper' => 'memberform_form_wrapper',
       'callback' => 'memberform_ajax_callback',
@@ -258,7 +258,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
     '#type' => 'textfield',
     '#states' => array(
       'visible' => array(
-        ':input[name="page_contribution_payment_type"]' => array(
+        ':input[name="page_contribution_payment_method"]' => array(
           'value' => 'auto',
         ),
       ),
@@ -272,34 +272,37 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
 function memberform_shared_page_payment_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   $form_name = $storage['form_name'];
-  $is_member = reset($storage['values']['person_details']['page_person_details_spmember']) === 'is_member';
+  $is_member = $storage['values']['person_details']['page_person_details_spmember'];
 
   switch ($form_name) {
     case 'spanning':
       if ($is_member) {
-        $auto_price_message = 'Automatische incasso, € 12 per jaar (niet leden betalen € 20)';
-        $accept_price_message = 'Acceptgiro, € 12 per jaar (niet leden betalen € 24)';
+        $options = array(
+          'auto_12' => 'Automatische incasso, € 12 per jaar (niet leden betalen € 20)',
+          'accept_12' => 'Acceptgiro, € 12 per jaar (niet leden betalen € 24)',
+        );
       }
       else {
-        $auto_price_message = 'Automatische incasso € 20 (€ 12 voor leden)';
-        $accept_price_message = 'Acceptgiro € 24 (€ 12 voor leden)';
+        $options = array(
+          'auto_20' => 'Automatische incasso € 20 (€ 12 voor leden)',
+          'accept_24' => 'Acceptgiro € 24 (€ 12 voor leden)',
+        );
       }
       break;
 
     case 'tribune':
-      $auto_price_message = 'Automatische incasso, € 5 per kwartaal';
-      $accept_price_message = 'Acceptgiro, € 24 per jaar';
+      $options = array(
+        'auto_5' => 'Automatische incasso, € 5 per kwartaal',
+        'accept_24' => 'Acceptgiro, € 24 per jaar',
+      );
       break;
   }
-  $form['page_payment_payment_type'] = array(
+  $form['page_payment_payment_method'] = array(
     '#title' => 'Betalingsgegevens',
     '#type' => 'radios',
     '#required' => TRUE,
-    '#options' => array(
-      'auto' => $auto_price_message,
-      'accept' => $accept_price_message,
-    ),
-    '#name' => 'page_payment_payment_type',
+    '#options' => $options,
+    '#name' => 'page_payment_payment_method',
     '#ajax' => array(
       'wrapper' => 'memberform_form_wrapper',
       'callback' => 'memberform_ajax_callback',
@@ -311,8 +314,12 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
     '#type' => 'textfield',
     '#states' => array(
       'visible' => array(
-        ':input[name="page_payment_payment_type"]' => array(
-          'value' => 'auto',
+        array(
+          array(':input[name="page_payment_payment_method"]' => array('value' => 'auto_5')),
+          array('or'),
+          array(':input[name="page_payment_payment_method"]' => array('value' => 'auto_12')),
+          array('or'),
+          array(':input[name="page_payment_payment_method"]' => array('value' => 'auto_20')),
         ),
       ),
     ),
@@ -522,21 +529,16 @@ function memberform_shared_validation($form, &$form_state) {
         if ($values['page_contribution_choice'] === 'custom') {
           unset($values['amount']);
           $amount = $values['page_contribution_custom'];
-          $amount = preg_replace('/[^0-9,.]/', '', $amount);
-          $amount = str_replace(',', '.', $amount);
-          if (!is_numeric($amount)) {
+          $amount = memberform_clean_amount($amount);
+          if ($amount === FALSE) {
             form_set_error('page_contribution_custom', 'Vul een getal in.');
           }
           else {
-            $amount = number_format($amount, 2, '.', '');
-            if ($amount < 5) {
-              form_set_error('page_contribution_custom', 'De minimumbijdrage is 5 euro.');
-            }
             $amount = str_replace('.', ',', $amount);
             $values['page_contribution_custom'] = $amount;
           }
         }
-        if ($values['page_contribution_payment_type'] === 'auto') {
+        if ($values['page_contribution_payment_method'] === 'auto') {
           $iban = strtoupper($values['page_contribution_iban']);
           $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
           if ($storage['values']['address']['page_address_country'] === 'NL') {
@@ -551,7 +553,7 @@ function memberform_shared_validation($form, &$form_state) {
         break;
 
       case 'payment':
-        if ($values['page_payment_payment_type'] === 'auto') {
+        if ($values['page_payment_payment_method'] === 'auto') {
           $iban = strtoupper($values['page_payment_iban']);
           $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
           if ($storage['values']['address']['page_address_country'] === 'NL') {
@@ -569,60 +571,163 @@ function memberform_shared_validation($form, &$form_state) {
 }
 
 /**
- * Maps form values to memberships array.
+ * Shared submit function for memberform pages.
+ *
+ * Set $storage['next_page'] to value of next page. The text of the submit
+ * button can be set to 'submit' instead of 'next' by setting
+ * $storage['finish_page'] to TRUE. Next a thanks page without submit buttons
+ * can be set: $storage['thanks_page'] to TRUE and the next page will have no
+ * submit buttons.
  */
-function memberform_shared_page_map_memberships($form_state) {
-  $memberships = array();
-  if (!empty($form_state['storage']['membership_type'])) {
-    $storage = $form_state['storage'];
-    $memberships = array();
-    if (isset($storage['membership_type'])) {
-      switch ($storage['membership_type']) {
-        case 'sp_and_red_member':
-          $memberships = array(
-            'lid_rood',
-            'lid_sp',
-          );
+function memberform_shared_submit($form, &$form_state) {
+  if (isset($form_state['form_errors'])) {
+    return;
+  }
+
+  $values = &$form_state['values'];
+  $storage = &$form_state['storage'];
+
+  // Process trigger.
+  $trigger = $form_state['triggering_element']['#name'];
+
+  switch ($trigger) {
+    case 'next_page':
+      switch ($storage['current_page']) {
+        case 'start':
+          // Set form navigation.
+          if (empty($values['page_start_phone'])) {
+            $storage['next_page'] = 'person_details';
+          }
+          else {
+            $storage['next_page'] = 'quickfinish';
+          }
+          // Store hash name, value and created.
+          $split_name = memberform_split_name($values['page_start_name']);
+          $storage['values']['person_details']['page_person_details_first_name'] = $split_name['first_name'];
+          $storage['values']['person_details']['page_person_details_middle_name'] = $split_name['middle_name'];
+          $storage['values']['person_details']['page_person_details_last_name'] = $split_name['last_name'];
+          $storage['hash'] = empty($storage['hash']) ? memberform_get_hash($storage['membership_type'], $values['page_start_name']) : $storage['hash'];
+          $storage['created'] = empty($storage['created']) ? time() : $storage['created'];
           break;
 
-        case 'red_member':
-          $memberships = array(
-            'lid_rood',
-          );
+        case 'quickfinish':
+          $storage['next_page'] = 'person_details';
           break;
 
-        case 'sp_member':
-          $memberships = array(
-            'lid_sp',
-          );
+        case 'person_details':
+          $age = memberform_get_age($values['page_person_details_birth_date']);
+          if ($age < 16) {
+            $storage['membership_type'] = 'red_member';
+            $storage['next_page'] = 'address';
+          }
+          elseif ($age <= 27) {
+            $storage['next_page'] = 'red';
+          }
+          else {
+            $storage['next_page'] = 'address';
+            $storage['membership_type'] = 'sp_member';
+          }
           break;
 
-        case 'tribune':
-          $memberships = array(
-            'tribune',
-          );
+        case 'red':
+          $storage['membership_type'] = $values['page_red_membership'];
+          $storage['next_page'] = 'address';
           break;
 
-        case 'spanning':
-          $memberships = array(
-            'spanning',
-          );
+        case 'address':
+          $storage['next_page'] = 'contribution';
+          break;
+
+        case 'contribution':
+          $storage['next_page'] = 'gift';
+          // Store payment method and amount.
+          if ($values['page_contribution_choice'] === 'custom') {
+            $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_custom']);
+          }
+          else {
+            $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_choice']);
+          }
+          $storage['payment_method'] = $values['page_contribution_payment_method'];
+          $storage['bank_account'] = $values['page_contribution_iban'];
+          break;
+
+        case 'payment':
+          $storage['next_page'] = 'summary';
+          // Store payment method and amount.
+          $payment_info = explode('_', $values['page_payment_payment_method']);
+          $storage['payment_method'] = $payment_info[0];
+          $storage['payment_amount'] = memberform_clean_amount($payment_info[1]);
+          $storage['bank_account'] = $values['page_payment_iban'];
+          break;
+
+        case 'gift':
+          $storage['next_page'] = 'summary';
+          $storage['finish_page'] = TRUE;
+          break;
+
+        case 'summary':
+          $storage['next_page'] = 'thanks';
+          $storage['thanks_page'] = TRUE;
           break;
       }
-    }
+
+      // Store submission.
+      memberform_store_submission($form, $form_state);
+      break;
   }
-  return $memberships;
 }
 
+
 /**
- * Join a string with a natural language conjunction at the end.
- *
- * Https://gist.github.com/angry-dan/e01b8712d6538510dd9c.
+ * Shared validation for the diffent shared form elements.
  */
-function memberform_natural_language_join(array $list, $conjunction = 'and') {
-  $last = array_pop($list);
-  if ($list) {
-    return implode(', ', $list) . ' ' . $conjunction . ' ' . $last;
+function memberform_store_submission($form, &$form_state) {
+  $storage = $form_state['storage'];
+  $values = $storage['values'];
+  $created = empty($storage['created']) ? time() : $storage['created'];
+  $phone = _hv($values['start']['page_start_phone']);
+  if (preg_match('/^(((\+31|0|0031)6){1}[1-9]{1}[0-9]{7})$/', $phone)) {
+    $mobile = $phone;
+    $phone = NULL;
   }
-  return $last;
+  else {
+    $mobile = NULL;
+  }
+  $id = db_merge('memberform_submissions')
+    ->key(array(
+      'hash' => $storage['hash'],
+    ))
+    ->fields(array(
+      'membership_type' => _hv(memberform_shared_page_map_memberships($form_state, 'string')),
+      'initials' => NULL,
+      'firstname' => _hv($values['person_details']['page_person_details_first_name']),
+      'middlename' => _hv($values['person_details']['page_person_details_middle_name']),
+      'lastname' => _hv($values['person_details']['page_person_details_last_name']),
+      'gender' => '',
+      'birthdate' => _hv($values['person_details']['page_person_details_birth_date']),
+      'email' => _hv($values['start']['page_start_email']),
+      'phone' => $phone,
+      'phone_mobile' => $mobile,
+      'country' => _hv($values['address']['page_address_country']),
+      'zipcode' => _hv($values['address']['page_address_postal_code']),
+      'housenumber' => _hv($values['address']['page_address_house_number']),
+      'housenumber_suffix' => _hv($values['address']['page_address_house_number_addition']),
+      'street' => _hv($values['address']['page_address_street']),
+      'city' => _hv($values['address']['page_address_locality']),
+      'contribution' => _hv($storage['payment_amount']),
+      'bank_account' => _hv($storage['bank_account']),
+      'payment_method' => _hv($storage['payment_method']),
+      'welcome_present_sp' => _hv($values['gift']['page_gift_select_lid_sp']),
+      'welcome_present_rood' => _hv($values['gift']['page_gift_select_lid_rood']),
+      'source' => NULL,
+      'created' => $created,
+      'verified' => NULL,
+      'reminded' => NULL,
+      'submitted' => NULL,
+      'errormsg' => NULL,
+      'flags' => _hv($storage['flags']),
+      'contact_id' => NULL,
+      'note' => NULL,
+    ))
+    ->execute();
 }
