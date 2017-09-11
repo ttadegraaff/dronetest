@@ -685,6 +685,8 @@ function memberform_store_submission($form, &$form_state) {
   $storage = $form_state['storage'];
   $values = $storage['values'];
   $created = empty($storage['created']) ? time() : $storage['created'];
+
+  // Set mobile, or phone.
   $phone = _hv($values['start']['page_start_phone']);
   if (preg_match('/^(((\+31|0|0031)6){1}[1-9]{1}[0-9]{7})$/', $phone)) {
     $mobile = $phone;
@@ -693,41 +695,79 @@ function memberform_store_submission($form, &$form_state) {
   else {
     $mobile = NULL;
   }
+
+  $fields = array(
+    'membership_type' => _hv(memberform_shared_page_map_memberships($form_state, 'string')),
+    'initials' => NULL,
+    'firstname' => _hv($values['person_details']['page_person_details_first_name']),
+    'middlename' => _hv($values['person_details']['page_person_details_middle_name']),
+    'lastname' => _hv($values['person_details']['page_person_details_last_name']),
+    'gender' => '',
+    'birthdate' => _hv($values['person_details']['page_person_details_birth_date']),
+    'email' => _hv($values['start']['page_start_email']),
+    'phone' => $phone,
+    'phone_mobile' => $mobile,
+    'country' => _hv($values['address']['page_address_country']),
+    'zipcode' => _hv($values['address']['page_address_postal_code']),
+    'housenumber' => _hv($values['address']['page_address_house_number']),
+    'housenumber_suffix' => _hv($values['address']['page_address_house_number_addition']),
+    'street' => _hv($values['address']['page_address_street']),
+    'city' => _hv($values['address']['page_address_locality']),
+    'contribution' => _hv($storage['payment_amount']),
+    'bank_account' => _hv($storage['bank_account']),
+    'payment_method' => _hv($storage['payment_method']),
+    'welcome_present_sp' => _hv($values['gift']['page_gift_select_lid_sp']),
+    'welcome_present_rood' => _hv($values['gift']['page_gift_select_lid_rood']),
+    'source' => NULL,
+    'created' => $created,
+    'verified' => NULL,
+    'reminded' => NULL,
+    'submitted' => NULL,
+    'errormsg' => NULL,
+    'flags' => _hv($storage['flags']),
+    'contact_id' => NULL,
+    'note' => NULL,
+  );
+
   $id = db_merge('memberform_submissions')
     ->key(array(
       'hash' => $storage['hash'],
     ))
-    ->fields(array(
-      'membership_type' => _hv(memberform_shared_page_map_memberships($form_state, 'string')),
-      'initials' => NULL,
-      'firstname' => _hv($values['person_details']['page_person_details_first_name']),
-      'middlename' => _hv($values['person_details']['page_person_details_middle_name']),
-      'lastname' => _hv($values['person_details']['page_person_details_last_name']),
-      'gender' => '',
-      'birthdate' => _hv($values['person_details']['page_person_details_birth_date']),
-      'email' => _hv($values['start']['page_start_email']),
-      'phone' => $phone,
-      'phone_mobile' => $mobile,
-      'country' => _hv($values['address']['page_address_country']),
-      'zipcode' => _hv($values['address']['page_address_postal_code']),
-      'housenumber' => _hv($values['address']['page_address_house_number']),
-      'housenumber_suffix' => _hv($values['address']['page_address_house_number_addition']),
-      'street' => _hv($values['address']['page_address_street']),
-      'city' => _hv($values['address']['page_address_locality']),
-      'contribution' => _hv($storage['payment_amount']),
-      'bank_account' => _hv($storage['bank_account']),
-      'payment_method' => _hv($storage['payment_method']),
-      'welcome_present_sp' => _hv($values['gift']['page_gift_select_lid_sp']),
-      'welcome_present_rood' => _hv($values['gift']['page_gift_select_lid_rood']),
-      'source' => NULL,
-      'created' => $created,
-      'verified' => NULL,
-      'reminded' => NULL,
-      'submitted' => NULL,
-      'errormsg' => NULL,
-      'flags' => _hv($storage['flags']),
-      'contact_id' => NULL,
-      'note' => NULL,
-    ))
+    ->fields($fields)
     ->execute();
+
+  if ($id) {
+
+    $mail = drupal_mail(
+      'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
+      array(
+        'form_state'      => $form_state,
+        'hash'            => $storage['hash'],
+        'membership_type' => $fields['membership_type'],
+        'format'          => SWIFTMAILER_FORMAT_HTML,
+      )
+    );
+
+    if (!empty($mail['send'])) {
+
+      $name = implode(' ', array(
+        $fields['first_name'],
+        $fields['middle_name'],
+        $fields['last_name'],
+      ));
+
+      $form_state['redirect'] = array(
+        'aanmelden/bedankt',
+        array(
+          'query' => array(
+            'name' => base64_encode($name),
+            'membership_type' => $fields['membership_type'],
+            'token' => drupal_get_token($name),
+          ),
+        ),
+      );
+      return TRUE;
+    }
+  }
+  $form_state['redirect'] = array('aanmelden/fout');
 }

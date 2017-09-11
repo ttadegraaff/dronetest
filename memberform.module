@@ -120,6 +120,31 @@ function memberform_menu() {
     'weight'           => 13,
   ];
 
+  $items['aanmelden/bedankt'] = [
+      'title'           => 'Bedankt voor je aanmelding',
+      'type'            => MENU_CALLBACK,
+      'page callback'   => 'memberform_page_thanks',
+      'access callback' => TRUE,
+      'file'            => 'memberform_page_actions.inc',
+  ];
+
+  $items['aanmelden/fout'] = [
+      'title'           => 'Er is een fout opgetreden',
+      'type'            => MENU_CALLBACK,
+      'page callback'   => 'memberform_page_error',
+      'access callback' => TRUE,
+      'file'            => 'memberform_page_actions.inc',
+  ];
+
+  $items['aanmelden/bevestig/%'] = [
+    'title'           => 'Aanmelding bevestigen',
+    'type'            => MENU_CALLBACK,
+    'page callback'   => 'memberform_page_validate',
+    'page arguments'  => [2],
+    'access callback' => TRUE,
+    'file'            => 'memberform_page_actions.inc',
+  ];
+
   return $items;
 }
 
@@ -160,4 +185,32 @@ function memberform_permission() {
  */
 function memberform_get_form($form_callback, $form_name) {
   return drupal_get_form($form_callback, $form_name);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function memberform_cron() {
+
+  $lastrun = variable_get('memberform_cron_lastrun');
+  if ($lastrun < (time() - 3600)) {
+    variable_set('memberform_cron_lastrun', time());
+    memberform_submit_pending();
+    memberform_send_reminders();
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function memberform_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'verificatie':
+      memberform_get_mail($message, $params);
+      break;
+
+    case 'reminder':
+      memberform_get_reminder_mail($message, $params);
+      break;
+  }
 }

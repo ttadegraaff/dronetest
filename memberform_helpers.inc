@@ -127,7 +127,7 @@ function memberform_submit_pending() {
         $contact_id = NULL;
       }
 
-      db_update('sp_aanmeldingen')
+      db_update('memberform_submissions')
         ->fields([
           'submitted'  => time(),
           'errormsg'   => $error,
@@ -285,16 +285,16 @@ function memberform_add_membership($data = []) {
   ];
 
   if ($data['initials']) {
-    $sp_initials_field = variable_get('spaanmelden_id_custom_initials');
+    $sp_initials_field = variable_get('memberform_id_custom_initials');
     $contact_data[$sp_initials_field] = $data['initials'];
   }
 
-  $contact_source_field = variable_get('spaanmelden_id_custom_source');
+  $contact_source_field = variable_get('memberform_id_custom_source');
   if ($data['source']) {
     $contact_data[$contact_source_field] = $data['source'];
   }
   else {
-    $contact_data[$contact_source_field] = _spaanmelden_get_source_website();
+    $contact_data[$contact_source_field] = memberform_get_source_website();
   }
 
   $api = spciviapi_get_api();
@@ -306,10 +306,10 @@ function memberform_add_membership($data = []) {
 
   // Get contact ID and location type ID.
   $contact_id = $res->id;
-  $location_type_id = _spaanmelden_get_location_type_id();
+  $location_type_id = memberform_get_location_type_id();
 
   // Get country ID.
-  $country_id = array_search($data['country'], _spaanmelden_get_country_ids());
+  $country_id = array_search($data['country'], memberform_get_country_ids());
 
   // Add home address.
   $api->Address->create([
@@ -373,8 +373,8 @@ function memberform_add_membership($data = []) {
   switch ($data['membership_type']) {
 
     case 'lid_sp':
-      $membership_type_id = variable_get('spaanmelden_id_lid_sp');
-      $financial_type_id = variable_get('spaanmelden_id_fintype_sp');
+      $membership_type_id = variable_get('memberform_id_lid_sp');
+      $financial_type_id = variable_get('memberform_id_fintype_sp');
       $contribution = (float) $data['contribution'];
       if ($data['payment_method'] != 'incasso') {
         $contribution += 1;
@@ -382,8 +382,8 @@ function memberform_add_membership($data = []) {
       break;
 
     case 'lid_sprood':
-      $membership_type_id = variable_get('spaanmelden_id_lid_sprood');
-      $financial_type_id = variable_get('spaanmelden_id_fintype_sprood');
+      $membership_type_id = variable_get('memberform_id_lid_sprood');
+      $financial_type_id = variable_get('memberform_id_fintype_sprood');
       $contribution = (float) $data['contribution'];
       if ($data['payment_method'] != 'incasso') {
         $contribution += 1;
@@ -391,20 +391,20 @@ function memberform_add_membership($data = []) {
       break;
 
     case 'lid_rood':
-      $membership_type_id = variable_get('spaanmelden_id_lid_rood');
-      $financial_type_id = variable_get('spaanmelden_id_fintype_rood');
+      $membership_type_id = variable_get('memberform_id_lid_rood');
+      $financial_type_id = variable_get('memberform_id_fintype_rood');
       $contribution = round((float) $data['contribution'] / 4, 2);
       break;
 
     case 'tribune':
-      $membership_type_id = variable_get('spaanmelden_id_abo_tribune');
-      $financial_type_id = variable_get('spaanmelden_id_fintype_tribune');
+      $membership_type_id = variable_get('memberform_id_abo_tribune');
+      $financial_type_id = variable_get('memberform_id_fintype_tribune');
       $contribution = ($data['payment_method'] == 'incasso') ? 5 : 6;
       break;
 
     case 'spanning':
-      $membership_type_id = variable_get('spaanmelden_id_abo_spanning');
-      $financial_type_id = variable_get('spaanmelden_id_fintype_spanning');
+      $membership_type_id = variable_get('memberform_id_abo_spanning');
+      $financial_type_id = variable_get('memberform_id_fintype_spanning');
       $contribution = 6;
       break;
 
@@ -413,10 +413,10 @@ function memberform_add_membership($data = []) {
   }
 
   if ($data['payment_method'] == 'incasso') {
-    $payment_instrument = variable_get('spaanmelden_id_payment_incasso');
+    $payment_instrument = variable_get('memberform_id_payment_incasso');
   }
   else {
-    $payment_instrument = variable_get('spaanmelden_id_payment_accept');
+    $payment_instrument = variable_get('memberform_id_payment_accept');
   }
 
   $membership_data = [
@@ -425,7 +425,7 @@ function memberform_add_membership($data = []) {
     'membership_start_date'  => date('Ymdhis', $data['verified']),
     'join_date'              => date('Ymdhis', $data['verified']),
     'is_override'            => 1,
-    'status_id'              => variable_get('spaanmelden_id_status'),
+    'status_id'              => variable_get('memberform_id_status'),
     'total_amount'           => number_format($contribution, 2, '.', ''),
     'financial_type_id'      => $financial_type_id,
     'contribution_status_id' => 2,
@@ -441,31 +441,31 @@ function memberform_add_membership($data = []) {
   }
 
   if (in_array($data['membership_type'], ['lid_sp', 'lid_sprood'])) {
-    $sp_gift_field = variable_get('spaanmelden_id_custom_gift_sp');
+    $sp_gift_field = variable_get('memberform_id_custom_gift_sp');
     $membership_data[$sp_gift_field] = memberform_get_gift_internal_name($data['welcome_present_sp']);
 
-    $sp_gift_field_received = variable_get('spaanmelden_id_custom_gift_sp_received');
+    $sp_gift_field_received = variable_get('memberform_id_custom_gift_sp_received');
     $membership_data[$sp_gift_field_received] = 0;
   }
   if (in_array($data['membership_type'], ['lid_sprood', 'lid_rood'])) {
-    $rood_gift_field = variable_get('spaanmelden_id_custom_gift_rood');
+    $rood_gift_field = variable_get('memberform_id_custom_gift_rood');
     $membership_data[$rood_gift_field] = memberform_get_gift_internal_name($data['welcome_present_rood']);
 
-    $rood_gift_field_received = variable_get('spaanmelden_id_custom_gift_rood_received');
+    $rood_gift_field_received = variable_get('memberform_id_custom_gift_rood_received');
     $membership_data[$rood_gift_field_received] = 0;
   }
 
-  $membership_source_field = variable_get('spaanmelden_id_custom_source_membership');
+  $membership_source_field = variable_get('memberform_id_custom_source_membership');
   if ($data['source']) {
     $membership_data[$membership_source_field] = $data['source'];
   }
   else {
-    $membership_data[$membership_source_field] = _spaanmelden_get_source_website();
+    $membership_data[$membership_source_field] = memberform_get_source_website();
   }
 
-  $gezinslid_field = variable_get('spaanmelden_id_custom_gezinslid');
+  $gezinslid_field = variable_get('memberform_id_custom_gezinslid');
   $membership_data[$gezinslid_field] = 0;
-  $welkomstbrief_field = variable_get('spaanmelden_id_custom_welkomstbrief');
+  $welkomstbrief_field = variable_get('memberform_id_custom_welkomstbrief');
   $membership_data[$welkomstbrief_field] = 0;
 
   $api->Membership->spcreate($membership_data);
@@ -479,16 +479,16 @@ function memberform_add_membership($data = []) {
   $data['submitted'] = time();
   $activity_data = '';
   foreach ($data as $key => $value) {
-    list($key, $value) = _spaanmelden_friendly_field_data($key, $value, TRUE);
+    list($key, $value) = memberform_friendly_field_data($key, $value, TRUE);
     if ($key) {
       $activity_data .= $key . ': ' . $value . '<br />';
     }
   }
 
   $api->Activity->Create([
-    'source_contact_id'  => variable_get('spaanmelden_id_activity_contact'),
+    'source_contact_id'  => variable_get('memberform_id_activity_contact'),
     'target_contact_id'  => $contact_id,
-    'activity_name'      => variable_get('spaanmelden_id_activity'),
+    'activity_name'      => variable_get('memberform_id_activity'),
     'activity_subject'   => 'Aanmelding als ' . memberform_membership_description($data['membership_type']),
     'activity_date_time' => date('YmdHis', $data['verified']),
     'details'            => 'De volgende aanmelding is via de website ontvangen op ' . date('d-m-Y H:i:s', $data['created']) . ' en bevestigd op ' . date('d-m-Y H:i:s', $data['verified']) . ':<br /><br />' . $activity_data,
@@ -500,7 +500,7 @@ function memberform_add_membership($data = []) {
 
   // Add note.
   if (!empty($data['note'])) {
-    spaanmelden_create_note($contact_id, $data['note']);
+    memberform_create_note($contact_id, $data['note']);
   }
 
   return $contact_id;
@@ -540,4 +540,203 @@ function memberform_get_gift_internal_name($gift_id) {
     ->condition('id', $gift_id, '=')
     ->execute()
     ->fetchField(0);
+}
+
+/**
+ * Herinneringsmails sturen aan aanmelders die nog niet bevestigd hebben.
+ */
+function memberform_send_reminders() {
+
+  $unverified = db_select('memberform_submissions', 's')
+    ->fields('s')
+    ->condition('created', time() - 86400, '<')
+    ->isNull('verified')
+    ->isNull('reminded')
+    ->execute();
+
+  if ($unverified) {
+
+    while ($record = $unverified->fetchAssoc()) {
+
+      $mail = drupal_mail(
+        'memberform', 'reminder', $record['email'], LANGUAGE_NONE,
+        [
+          'hash'            => $record['hash'],
+          'membership_type' => $record['membership_type'],
+          'format'          => SWIFTMAILER_FORMAT_HTML,
+        ]
+      );
+
+      if (!empty($mail['send'])) {
+
+        db_update('memberform_submissions')
+          ->fields([
+            'reminded' => time(),
+          ])
+          ->condition('id', $record['id'])
+          ->execute();
+      }
+    }
+  }
+}
+
+/**
+ * Defines e-mail.
+ */
+function memberform_get_mail(&$message, $params) {
+
+  if (!$params['hash'] || !$params['membership_type'] || !$params['form_state']) {
+    throw new \Exception('Params hash, membership_type or form_state missing.');
+  }
+
+  // $tables = memberform_format_tables($params['membership_type'], $params['form_state']);
+  $descr = memberform_membership_description($params['membership_type']);
+
+  global $base_url;
+  $validate_url = $base_url . '/aanmelden/bevestig/' . $params['hash'];
+
+  $message['subject'] = 'Bevestig je aanmelding als ' . $descr;
+  $message['body'] = [];
+  $message['body'][] = '<p>Bedankt voor je aanmelding als ' . $descr . '!<br />Klik op onderstaande link om je aanmelding te bevestigen. Als je niets doet wordt je aanmelding vanzelf verwijderd.</p>';
+  $message['body'][] = '<p>' . l($validate_url, $validate_url) . '</p>';
+  // $message['body'][] = drupal_render($tables);
+  $message['body'][] = memberform_get_qline();
+}
+
+/**
+ * Defines reminder mail.
+ */
+function memberform_get_reminder_mail(&$message, $params) {
+
+  if (!$params['hash'] || !$params['membership_type']) {
+    throw new \Exception('Params hash or membership_type missing.');
+  }
+
+  $descr = memberform_membership_description($params['membership_type']);
+
+  global $base_url;
+  $validate_url = $base_url . '/aanmelden/bevestig/' . $params['hash'];
+
+  $message['subject'] = 'Herinnering: bevestig je aanmelding als ' . $descr;
+  $message['body'] = [];
+  $message['body'][] = '<p>Gisteren heb je je aangemeld als ' . $descr . '.<br />Je hebt je aanmelding echter nog niet bevestigd. Klik op onderstaande link om je aanmelding te bevestigen en deze door te geven aan de SP-ledenadministratie.</p>';
+  $message['body'][] = '<p>' . l($validate_url, $validate_url) . '</p>';
+  $message['body'][] = memberform_get_qline();
+}
+
+/**
+ * Beschrijving ontbreekt.
+ */
+function memberform_get_qline() {
+  return '<p>Voor verdere vragen over je aanmelding kun je contact opnemen met de
+  ledenadministratie: 088-243 55 40 of <a href="mailto:administratie@sp.nl">administratie@sp.nl</a>.</p>';
+}
+
+/**
+ * Haal de ID van de bron Website op.
+ */
+function memberform_get_source_website() {
+
+  $sources = memberform_get_source_options();
+  if (in_array('Website', $sources)) {
+    return array_search('Website', $sources);
+  }
+  return '';
+}
+
+/**
+ * Haal een lijst van mogelijke bronnen op (quick and dirty uit de database).
+ */
+function memberform_get_source_options() {
+
+  $source_field = variable_get('memberform_id_custom_source');
+  $q = db_select('civicrm_option_value', 'cov')
+    ->fields('cov', ['label', 'value'])
+    ->condition('ccf.id', str_replace('custom_', '', $source_field), '=')
+    ->orderBy('cov.weight');
+  $q->join('civicrm_custom_field', 'ccf', 'ccf.option_group_id=cov.option_group_id');
+  $sources = $q->execute()->fetchAll();
+
+  $ret = [];
+  if ($sources) {
+    $ret[] = 'Kies...';
+    foreach ($sources as $s) {
+      $ret[$s->value] = $s->label;
+    }
+  }
+
+  return $ret;
+}
+
+/**
+ * Creates note.
+ */
+function memberform_create_note($contact_id, $note) {
+  $api = spciviapi_get_api();
+  $params = array(
+    'version' => 3,
+    'entity_id' => $contact_id,
+    'note' => $note,
+    'subject' => 'Waarom nu lid?',
+  );
+  $api->Note->create($params);
+  $result = $api->result();
+  if (!$result || $result->is_error || !$result->id) {
+    drupal_set_message('Er is iets misgegaan met het opslaan van de informatie. Neem contact op met webmaster@sp.nl.', 'error');
+    throw new \Exception('CiviCRM API error (Note): ' . $result->error_message);
+  }
+}
+
+/**
+ * Stores note.
+ */
+function memberform_store_note($hash, $note) {
+  $num = db_update('memberform_submissions')
+    ->fields(array(
+      'note' => $note,
+    ))
+    ->condition('hash', $hash)
+    ->execute();
+}
+
+/**
+ * Haal de ID op die bij het locatietype 'Thuis' hoort.
+ */
+function memberform_get_location_type_id() {
+
+  return memberform_cache_data('memberform_location_type', function () {
+
+    $api = spciviapi_get_api();
+    try {
+      $api->LocationType->Get([
+        'name' => 'Thuis',
+      ]);
+      $lt = $api->result();
+      if ($lt) {
+        return $lt->id;
+      }
+    }
+    catch (\Exception $e) {
+      return FALSE;
+    }
+  });
+}
+
+/**
+ * Cache data.
+ */
+function memberform_cache_data($cache_name, $callback, $limit = 28800) {
+  $data = cache_get($cache_name);
+  if ($data) {
+    return $data->data;
+  }
+
+  if (is_callable($callback)) {
+    $data = call_user_func($callback);
+    if ($data) {
+      cache_set($cache_name, $data, 'cache', $limit);
+    }
+    return $data;
+  }
+  return FALSE;
 }
