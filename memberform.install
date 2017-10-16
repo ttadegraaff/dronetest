@@ -136,7 +136,8 @@ function memberform_schema() {
         'length' => 20,
       ),
       'source'   => array(
-        'type'   => 'varchar', 'length' => 100,
+        'type'   => 'varchar',
+        'length' => 100,
       ),
       'created'              => array(
         'type'     => 'int',
