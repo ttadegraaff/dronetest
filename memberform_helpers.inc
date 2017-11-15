@@ -589,7 +589,7 @@ function memberform_get_mail(&$message, $params) {
     throw new \Exception('Params hash, membership_type or form_state missing.');
   }
 
-  // $tables = memberform_format_tables($params['membership_type'], $params['form_state']);
+  $table = memberform_overview_table($params['form_state']);
   $descr = memberform_membership_description($params['membership_type']);
 
   global $base_url;
@@ -599,7 +599,7 @@ function memberform_get_mail(&$message, $params) {
   $message['body'] = [];
   $message['body'][] = '<p>Bedankt voor je aanmelding als ' . $descr . '!<br />Klik op onderstaande link om je aanmelding te bevestigen. Als je niets doet wordt je aanmelding vanzelf verwijderd.</p>';
   $message['body'][] = '<p>' . l($validate_url, $validate_url) . '</p>';
-  // $message['body'][] = drupal_render($tables);
+  $message['body'][] = $table;
   $message['body'][] = memberform_get_qline();
 }
 

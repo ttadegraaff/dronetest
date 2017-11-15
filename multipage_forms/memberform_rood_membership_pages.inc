@@ -9,7 +9,7 @@
  *
  *   Example:
  *
- *   function memberform_rood_membership_page_start_form(&$form, $storage, $values) {
+ *   function memberform_rood_page_start_form(&$form, &$form_state) {
  *     $form['page_start_choice'] = array(
  *       '#type' => 'radios',
  *       '#title' => 'Maak een keuze',

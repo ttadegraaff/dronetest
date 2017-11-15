@@ -378,92 +378,7 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
  * Form definition for summary page.
  */
 function memberform_shared_page_summary_form(&$form, &$form_state) {
-  $storage = $form_state['storage'];
-  $values = $storage['values'];
-  $settings_callback = 'memberform_' . $storage['form_name'] . '_settings';
-  $page_titles = $settings_callback('titles');
-
-  $markup = '';
-  $rows = array();
-
-  // Loop through pages.
-  foreach ($values as $page => $items) {
-    if (in_array($page, $storage['page_history'])) {
-      $page_title = (empty($page_titles[$page])) ? '' : $page_titles[$page];
-      $rows_tmp[] = array(
-        'data' => array(
-          0 => array(
-            'data' => $page_title,
-            'header' => TRUE,
-            'colspan' => 2,
-          ),
-        ),
-        'no_striping' => TRUE,
-      );
-      // Loop through form elements.
-      foreach ($items as $key => $value) {
-        if (!empty($storage['form_element_definitions'][$key])) {
-          $form_element = $storage['form_element_definitions'][$key];
-          $title = (empty($form_element['#title'])) ? '' : $form_element['#title'];
-          if (strpos($key, 'page_') === 0) {
-            // Parse output of different form element types.
-            switch ($form_element['#type']) {
-              case 'textfield':
-                $rows_tmp[] = array($title, $value);
-                break;
-
-              case 'date_select':
-                $date = date("d-m-Y", strtotime($value));
-                $rows_tmp[] = array($title, $date);
-                break;
-
-              case 'select':
-              case 'radios':
-                $display = $form_element['#options'][$value];
-                $rows_tmp[] = array($title, $display);
-                break;
-            }
-          }
-        }
-      }
-      // Do not output pages without interactive elements.
-      if (count($rows_tmp) > 1) {
-        $rows = array_merge($rows, $rows_tmp);
-      }
-      $rows_tmp = array();
-    }
-  }
-
-  // Add membership info.
-  if (!empty($storage['membership_type'])) {
-    $memberships = memberform_shared_page_map_memberships($form_state);
-    if (!empty($memberships)) {
-      $rows[] = array(
-        'data' => array(
-          0 => array(
-            'data' => 'Lidmaatschappen',
-            'header' => TRUE,
-            'colspan' => 2,
-          ),
-        ),
-        'no_striping' => TRUE,
-      );
-      $titles = array(
-        'lid_sp' => 'SP',
-        'lid_rood' => 'ROOD',
-        'tribune' => 'Tribune',
-        'spanning' => 'Spanning',
-      );
-      foreach ($memberships as $membership) {
-        $membership_titles[] = $titles[$membership];
-      }
-      $memberships_line = memberform_natural_language_join($membership_titles, 'en');
-      $rows[] = array('', $memberships_line);
-    }
-  }
-
-  // Create table.
-  $markup = theme('table', array('rows' => $rows));
+  $markup = memberform_overview_table($form_state);
   $form['overview'] = array(
     '#markup' => $markup,
   );
@@ -672,16 +587,58 @@ function memberform_shared_submit($form, &$form_state) {
       }
 
       // Store submission.
-      memberform_store_submission($form, $form_state);
+      $store_result = memberform_store_submission($form_state);
+
+      if (!$store_result['submission_id']) {
+        $form_state['redirect'] = array('aanmelden/fout');
+      }
+
+      // Send confirmation mail when submitting summary page.
+      $fields = $store_result['fields'];
+      switch ($trigger) {
+        case 'next_page':
+          switch ($storage['current_page']) {
+            case 'summary':
+              $mail = drupal_mail(
+                'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
+                array(
+                  'form_state'      => $form_state,
+                  'hash'            => $storage['hash'],
+                  'membership_type' => $fields['membership_type'],
+                  'format'          => SWIFTMAILER_FORMAT_HTML,
+                )
+              );
+              if (!empty($mail['send'])) {
+
+                $name = implode(' ', array(
+                  $fields['first_name'],
+                  $fields['middle_name'],
+                  $fields['last_name'],
+                ));
+
+                $form_state['redirect'] = array(
+                  'aanmelden/bedankt',
+                  array(
+                    'query' => array(
+                      'name' => base64_encode($name),
+                      'membership_type' => $fields['membership_type'],
+                      'token' => drupal_get_token($name),
+                    ),
+                  ),
+                );
+              }
+              break;
+          }
+      }
       break;
   }
 }
 
 
 /**
- * Shared validation for the diffent shared form elements.
+ * Store submitted values in database.
  */
-function memberform_store_submission($form, &$form_state) {
+function memberform_store_submission($form_state) {
   $storage = $form_state['storage'];
   $values = $storage['values'];
   $created = empty($storage['created']) ? time() : $storage['created'];
@@ -736,38 +693,5 @@ function memberform_store_submission($form, &$form_state) {
     ->fields($fields)
     ->execute();
 
-  if ($id) {
-
-    $mail = drupal_mail(
-      'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
-      array(
-        'form_state'      => $form_state,
-        'hash'            => $storage['hash'],
-        'membership_type' => $fields['membership_type'],
-        'format'          => SWIFTMAILER_FORMAT_HTML,
-      )
-    );
-
-    if (!empty($mail['send'])) {
-
-      $name = implode(' ', array(
-        $fields['first_name'],
-        $fields['middle_name'],
-        $fields['last_name'],
-      ));
-
-      $form_state['redirect'] = array(
-        'aanmelden/bedankt',
-        array(
-          'query' => array(
-            'name' => base64_encode($name),
-            'membership_type' => $fields['membership_type'],
-            'token' => drupal_get_token($name),
-          ),
-        ),
-      );
-      return TRUE;
-    }
-  }
-  $form_state['redirect'] = array('aanmelden/fout');
+  return array('submission_id' => $id, 'fields' => $fields);
 }

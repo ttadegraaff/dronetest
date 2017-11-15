@@ -342,8 +342,8 @@ function memberform_gifts_view($action = NULL, $id = NULL) {
       'type' => memberform_membership_description($g->membership_type, TRUE),
       'show_website' => ($g->show_website ? 'ja' : 'nee'),
       'options' =>
-      l('Bewerken', 'admin/config/sp/aanmelden/gifts/edit/' . $g->id) . '&nbsp;&nbsp;&nbsp;' .
-      l('Verwijderen', 'admin/config/sp/aanmelden/gifts/delete/' . $g->id),
+      l(t('Bewerken'), 'admin/config/sp/aanmelden/gifts/edit/' . $g->id) . '&nbsp;&nbsp;&nbsp;' .
+      l(t('Verwijderen'), 'admin/config/sp/aanmelden/gifts/delete/' . $g->id),
     );
   }
 
