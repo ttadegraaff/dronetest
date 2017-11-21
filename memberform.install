@@ -159,6 +159,10 @@ function memberform_schema() {
         'size'   => 'big',
         'nullable' => TRUE,
       ),
+      'verification_type' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
       'errormsg'             => array(
         'type'     => 'text',
         'nullable' => TRUE,
@@ -176,6 +180,10 @@ function memberform_schema() {
         'type' => 'text',
         'not null' => FALSE,
         'description' => 'A note to store in CiviCRM.',
+      ),
+      'form_page' => array(
+        'type' => 'text',
+        'not null' => FALSE,
       ),
     ),
     'primary key' => array('id'),
@@ -243,12 +251,25 @@ function memberform_update_7002() {
 }
 
 /**
- * Add newcol field to {mytable1} table.
+ * Adds image field to memberform_gifts table, and note field to
+ * memverform_submissions table.
  */
 function memberform_update_7003() {
   $schema = memberform_schema();
-  $spec = $schema['memberform_gifts']['image'];
+  $spec = $schema['memberform_gifts']['fields']['image'];
   db_add_field('memberform_gifts', 'image', $spec);
-  $spec = $schema['memberform_submissions']['note'];
+  $spec = $schema['memberform_submissions']['fields']['note'];
   db_add_field('memberform_submissions', 'note', $spec);
+}
+
+/**
+ * Adds form_page field and confirmation_type field to
+ * memberfrom_submissions table.
+ */
+function memberform_update_7004() {
+  $schema = memberform_schema();
+  $spec = $schema['memberform_submissions']['fields']['form_page'];
+  db_add_field('memberform_submissions', 'form_page', $spec);
+  $spec = $schema['memberform_submissions']['fields']['confirmation_type'];
+  db_add_field('memberform_submissions', 'confirmation_type', $spec);
 }
