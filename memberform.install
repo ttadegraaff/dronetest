@@ -181,6 +181,10 @@ function memberform_schema() {
         'not null' => FALSE,
         'description' => 'A note to store in CiviCRM.',
       ),
+      'form' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+      ),
       'form_page' => array(
         'type' => 'text',
         'not null' => FALSE,
@@ -272,4 +276,13 @@ function memberform_update_7004() {
   db_add_field('memberform_submissions', 'form_page', $spec);
   $spec = $schema['memberform_submissions']['fields']['confirmation_type'];
   db_add_field('memberform_submissions', 'confirmation_type', $spec);
+}
+
+/**
+ * Adds form field to memberfrom_submissions table.
+ */
+function memberform_update_7005() {
+  $schema = memberform_schema();
+  $spec = $schema['memberform_submissions']['fields']['form'];
+  db_add_field('memberform_submissions', 'form', $spec);
 }

@@ -207,6 +207,8 @@ function memberform_view_submissions() {
     'verified' => 'Geverifieerd',
     'submitted' => 'Toegevoegd',
     'options' => 'Opties',
+    'form' => 'Formulier',
+    'form_page' => 'Ingevuld t/m',
   );
 
   $data = array();
@@ -214,6 +216,16 @@ function memberform_view_submissions() {
   $submissions = db_select('memberform_submissions', 's')->fields('s')->orderBy('created', 'DESC')->execute()->fetchAll();
   foreach ($submissions as $s) {
 
+    $form_title = '';
+    $form_page_title = '';
+    if (!empty($s->form)) {
+      $page_settings_callback = 'memberform_' . $s->form . '_settings';
+      $form_title = $page_settings_callback('form_title');
+      if (!empty($s->form_page)) {
+        $form_page_titles = $page_settings_callback('titles');
+        $form_page_title = $form_page_titles[$s->form_page];
+      }
+    }
     $data[] = array(
       'id' => $s->id,
       'name' => ($s->firstname ? $s->firstname : $s->initials) . ' ' . ($s->middlename ? $s->middlename . ' ' : '') . $s->lastname,
@@ -222,6 +234,8 @@ function memberform_view_submissions() {
       'verified' => ($s->verified ? date('d-m-Y H:i', $s->verified) : '-'),
       'submitted' => ($s->errormsg ? date('d-m-Y H:i', $s->submitted) . ' - <span style="color:#c00;font-weight:bold;">ERROR</span>' : ($s->submitted ? date('d-m-Y H:i', $s->submitted) . ' - <span style="color:#0c0;font-weight:bold;">' . ($s->contact_id ? $s->contact_id : 'OK') . '</span>' : '-')),
       'options' => l(t('Details'), 'admin/config/sp/aanmelden/submission/' . $s->id),
+      'form' => $form_title,
+      'form_page' => $form_page_title,
     );
   }
 

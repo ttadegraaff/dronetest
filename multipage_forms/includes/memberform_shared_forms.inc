@@ -584,6 +584,11 @@ function memberform_shared_submit($form, &$form_state) {
           $storage['next_page'] = 'thanks';
           $storage['thanks_page'] = TRUE;
           break;
+
+        case 'intern':
+          $storage['next_page'] = 'summary';
+          //$storage['thanks_page'] = TRUE;
+          break;
       }
 
       // Store submission.
@@ -684,6 +689,8 @@ function memberform_store_submission($form_state) {
     'flags' => _hv($storage['flags']),
     'contact_id' => NULL,
     'note' => NULL,
+    'form' => $storage['form_name'],
+    'form_page' => $storage['current_page'],
   );
 
   $id = db_merge('memberform_submissions')
