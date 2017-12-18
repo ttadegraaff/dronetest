@@ -442,7 +442,6 @@ function memberform_shared_validation($form, &$form_state) {
 
       case 'contribution':
         if ($values['page_contribution_choice'] === 'custom') {
-          unset($values['amount']);
           $amount = $values['page_contribution_custom'];
           $amount = memberform_clean_amount($amount);
           if ($amount === FALSE) {
@@ -491,7 +490,7 @@ function memberform_shared_validation($form, &$form_state) {
  * Set $storage['next_page'] to value of next page. The text of the submit
  * button can be set to 'submit' instead of 'next' by setting
  * $storage['finish_page'] to TRUE. Next a thanks page without submit buttons
- * can be set: $storage['thanks_page'] to TRUE and the next page will have no
+ * can be set: $storage['reset_page'] to TRUE and the next page will have no
  * submit buttons.
  */
 function memberform_shared_submit($form, &$form_state) {
@@ -507,6 +506,7 @@ function memberform_shared_submit($form, &$form_state) {
 
   switch ($trigger) {
     case 'next_page':
+    case 'finish_page':
       switch ($storage['current_page']) {
         case 'start':
           // Set form navigation.
@@ -530,17 +530,22 @@ function memberform_shared_submit($form, &$form_state) {
           break;
 
         case 'person_details':
-          $age = memberform_get_age($values['page_person_details_birth_date']);
-          if ($age < 16) {
-            $storage['membership_type'] = 'red_member';
-            $storage['next_page'] = 'address';
-          }
-          elseif ($age <= 27) {
-            $storage['next_page'] = 'red';
+          if (!in_array($storage['form_name'], array('tribune', 'spanning'))) {
+            $age = memberform_get_age($values['page_person_details_birth_date']);
+            if ($age < 16) {
+              $storage['membership_type'] = 'red_member';
+              $storage['next_page'] = 'address';
+            }
+            elseif ($age <= 27) {
+              $storage['next_page'] = 'red';
+            }
+            else {
+              $storage['next_page'] = 'address';
+              $storage['membership_type'] = 'sp_member';
+            }
           }
           else {
             $storage['next_page'] = 'address';
-            $storage['membership_type'] = 'sp_member';
           }
           break;
 
@@ -568,6 +573,7 @@ function memberform_shared_submit($form, &$form_state) {
 
         case 'payment':
           $storage['next_page'] = 'summary';
+          $storage['finish_page'] = TRUE;
           // Store payment method and amount.
           $payment_info = explode('_', $values['page_payment_payment_method']);
           $storage['payment_method'] = $payment_info[0];
@@ -582,12 +588,8 @@ function memberform_shared_submit($form, &$form_state) {
 
         case 'summary':
           $storage['next_page'] = 'thanks';
-          $storage['thanks_page'] = TRUE;
-          break;
-
-        case 'intern':
-          $storage['next_page'] = 'summary';
-          //$storage['thanks_page'] = TRUE;
+          $storage['reset_page'] = TRUE;
+          $storage['finish_page'] = FALSE;
           break;
       }
 

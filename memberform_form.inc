@@ -25,6 +25,10 @@ function memberform_form($form, &$form_state, $form_name) {
   $form_state['storage'] = $storage;
   $storage = &$form_state['storage'];
 
+  if ($storage['form_name'] === 'intern') {
+    $storage['finish_page'] = TRUE;
+  }
+
   // Create form based on form page.
   $form = array(
     '#validate' => array(
@@ -112,7 +116,7 @@ function memberform_form($form, &$form_state, $form_name) {
   if ($storage['step'] > 1) {
     $settings_callback = 'memberform_' . $form_name . '_settings';
     $no_back_pages = $settings_callback('no_back_pages');
-    if (!in_array($storage['current_page'], $no_back_pages) && empty($storage['thanks_page'])) {
+    if (!in_array($storage['current_page'], $no_back_pages) && empty($storage['reset_page'])) {
       $form['previous_page'] = array(
         '#type' => 'submit',
         '#value' => 'Terug',
@@ -127,20 +131,27 @@ function memberform_form($form, &$form_state, $form_name) {
 
   if (empty($storage['finish_page'])) {
     $next_button_text = 'Verder';
+    $next_button_name = 'next_page';
   }
   else {
     $next_button_text = 'Insturen';
+    $next_button_name = 'finish_page';
   }
-  if (empty($storage['thanks_page'])) {
+  if (empty($storage['reset_page']) || $storage['finish_page']) {
     $form['next_page'] = array(
       '#type' => 'submit',
       '#value' => $next_button_text,
-      '#name' => 'next_page',
+      '#name' => $next_button_name,
       '#ajax' => array(
         'wrapper' => 'memberform_form_wrapper',
         'callback' => 'memberform_ajax_callback',
       ),
     );
+  }
+
+  // Clear form history when on final page.
+  if (!empty($storage['reset_page'])) {
+    memberform_clear_form($form_state);
   }
 
   return $form;
@@ -222,7 +233,7 @@ function memberform_form_submit($form, &$form_state) {
       $storage['current_page'] = array_pop($storage['page_history']);
       unset($storage['next_page']);
       unset($storage['finish_page']);
-      unset($storage['thanks_page']);
+      unset($storage['reset_page']);
       break;
 
     case 'next_page':
@@ -247,4 +258,16 @@ function memberform_form_submit($form, &$form_state) {
  */
 function memberform_ajax_callback($form, &$form_state) {
   return $form;
+}
+
+function memberform_clear_form(&$form_state) {
+  if (
+    !empty($form_state['triggering_element']['#name']) &&
+    in_array($form_state['triggering_element']['#name'], array('next_page', 'finish_page'))
+  ) {
+    unset($_SESSION['memberform']);
+    unset($form_state['storage']);
+    return TRUE;
+  }
+  return FALSE;
 }
