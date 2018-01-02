@@ -79,37 +79,9 @@ function memberform_form($form, &$form_state, $form_name) {
     // Add page specific form elements.
     $form_callback($form, $form_state);
 
-    // Modify form elements.
+    // Modify form elements (Add default values, error messages, rebuild required functionality).
     foreach ($form as $key => $item) {
-      if (preg_match('/^page_' . $storage['current_page'] . '_[a-z0-9_]+$/', $key, $matches)) {
-        // Add default values.
-        if (isset($storage['values'][$storage['current_page']][$key])) {
-          $form[$key]['#default_value'] = $storage['values'][$storage['current_page']][$key];
-        }
-        else {
-          if (empty($form[$key]['#default_value'])) {
-            $form[$key]['#default_value'] = '';
-          }
-        }
-        // Add error messages.
-        if (isset($form_state['form_errors'][$key])) {
-          $form[$key]['#prefix'] = '<div class="memberform validation-error">';
-          $form[$key]['#suffix'] = '<div class="messages error">' . $form_state['form_errors'][$key] . '</div></div>';
-        }
-        else {
-          $form[$key]['#prefix'] = '<div class="memberform">';
-          $form[$key]['#suffix'] = '</div>';
-        }
-        // Rebuild required functionality.
-        if (!empty($form[$key]['#required'])) {
-          unset($form[$key]['#required']);
-          $form[$key]['#title'] .= ' <span class="form-required" title="This field is required.">*</span>';
-          $storage['required_fields'][$key] = $key;
-        }
-        // Store form definition for use in other pages
-        // (review page for example).
-        $storage['form_element_definitions'][$key] = $form[$key];
-      }
+      memberform_modify_form_elements($form[$key], $form_state, $key);
     }
   }
 
@@ -118,7 +90,7 @@ function memberform_form($form, &$form_state, $form_name) {
     $settings_callback = 'memberform_' . $form_name . '_settings';
     $no_back_pages = $settings_callback('no_back_pages');
     if (!in_array($storage['current_page'], $no_back_pages) && empty($storage['reset_page'])) {
-      $form['previous_page'] = array(
+      $form['action']['previous_page'] = array(
         '#type' => 'submit',
         '#value' => 'Terug',
         '#name' => 'previous_page',
@@ -139,7 +111,7 @@ function memberform_form($form, &$form_state, $form_name) {
     $next_button_name = 'finish_page';
   }
   if (empty($storage['reset_page']) || $storage['finish_page']) {
-    $form['next_page'] = array(
+    $form['action']['next_page'] = array(
       '#type' => 'submit',
       '#value' => $next_button_text,
       '#name' => $next_button_name,
@@ -148,6 +120,9 @@ function memberform_form($form, &$form_state, $form_name) {
         'callback' => 'memberform_ajax_callback',
       ),
     );
+  }
+  if (!empty($form['action'])) {
+    $form['action']['#type'] = 'fieldset';
   }
 
   // Clear form history when on final page.
@@ -271,4 +246,45 @@ function memberform_clear_form(&$form_state) {
     return TRUE;
   }
   return FALSE;
+}
+
+function memberform_modify_form_elements(&$item, &$form_state, $key) {
+  $item_org = $item;
+  $storage = &$form_state['storage'];
+  if (is_array($item)) {
+    if (preg_match('/^page_' . $storage['current_page'] . '_[a-z0-9_]+$/', $key, $matches)) {
+      // Add default values.
+      if (isset($storage['values'][$storage['current_page']][$key])) {
+        $item['#default_value'] = $storage['values'][$storage['current_page']][$key];
+      }
+      else {
+        if (empty($item['#default_value'])) {
+          $item['#default_value'] = '';
+        }
+      }
+      // Add error messages.
+      if (isset($form_state['form_errors'][$key])) {
+        $item['#prefix'] = '<div class="memberform validation-error">';
+        $item['#suffix'] = '<div class="messages error">' . $form_state['form_errors'][$key] . '</div></div>';
+      }
+      else {
+        $item['#prefix'] = '<div class="memberform">';
+        $item['#suffix'] = '</div>';
+      }
+      // Rebuild required functionality.
+      if (!empty($item['#required'])) {
+        unset($item['#required']);
+        $item['#title'] .= ' <span class="form-required" title="This field is required.">*</span>';
+        $storage['required_fields'][$key] = $key;
+      }
+      // Store form definition for use in other pages
+      // (review page for example).
+      $storage['form_element_definitions'][$key] = $item;
+    }
+    else {
+      foreach ($item as $key2 => $item2) {
+        memberform_modify_form_elements($item[$key2], $form_state, $key2);
+      }
+    }
+  }
 }

@@ -123,7 +123,12 @@ function memberform_membership_page_thanks_form(&$form, &$form_state) {
   else {
     $name = $storage['values']['start']['page_start_name'];
   }
-  $form['thanks'] = array(
+
+  $form['feedback'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['feedback']['thanks'] = array(
     '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
   );
 }

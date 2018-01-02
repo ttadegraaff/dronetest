@@ -8,18 +8,22 @@
  * Form definition for start page.
  */
 function memberform_shared_page_start_form(&$form, &$form_state) {
-  $form['page_start_name'] = array(
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['input']['page_start_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Naam',
     '#required' => TRUE,
   );
 
-  $form['page_start_email'] = array(
+  $form['input']['page_start_email'] = array(
     '#type' => 'textfield',
     '#title' => 'E-mailadres',
   );
 
-  $form['page_start_phone'] = array(
+  $form['input']['page_start_phone'] = array(
     '#type' => 'textfield',
     '#title' => 'Telefoonnummer',
   );
@@ -29,7 +33,11 @@ function memberform_shared_page_start_form(&$form, &$form_state) {
  * Form definition for thanks phone page.
  */
 function memberform_shared_page_quickfinish_form(&$form, &$form_state) {
-  $form['page_quickfinish_feedback'] = array(
+  $form['feedback'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['feedback']['page_quickfinish_feedback'] = array(
     '#markup' => '<p>We nemen binnenkort contact met je op om het lidmaatschap af te ronden.</p><p>Ga verder als je zelf je inschrijving wilt afronden.</p>',
   );
 }
@@ -57,34 +65,38 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
     }
   }
 
-  $form['page_person_details_first_name'] = array(
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['input']['page_person_details_first_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Voornaam',
     '#required' => TRUE,
     '#default_value' => $first_name,
   );
 
-  $form['page_person_details_middle_name'] = array(
+  $form['input']['page_person_details_middle_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Tussenvoegsel',
     '#default_value' => $middle_name,
   );
 
-  $form['page_person_details_last_name'] = array(
+  $form['input']['page_person_details_last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Achternaam',
     '#required' => TRUE,
     '#default_value' => $last_name,
   );
 
-  $form['page_person_details_birth_date'] = array(
+  $form['input']['page_person_details_birth_date'] = array(
     '#title'           => 'Geboortedatum',
     '#type'            => 'date_select',
     '#date_format'     => 'd-m-Y',
-    '#date_year_range' => '-100:-14',
+    '#date_year_range' => '-14:-120',
     '#required' => TRUE,
+    '#date_label_position' => 'within',
   );
-
 }
 
 /**
@@ -93,7 +105,11 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
 function memberform_shared_page_red_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
 
-  $form['page_red_membership'] = array(
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['input']['page_red_membership'] = array(
     '#title' => 'Rood lidmaatschap',
     '#type' => 'radios',
     '#options' => array(
@@ -110,9 +126,13 @@ function memberform_shared_page_red_form(&$form, &$form_state) {
 function memberform_shared_page_address_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
 
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   $countries = country_get_list();
-  $form['page_address_country'] = array(
+  $form['input']['page_address_country'] = array(
     '#title'         => 'Land',
     '#type'          => 'select',
     '#options'       => $countries,
@@ -129,7 +149,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
     $storage['values']['address']['page_address_country'] === 'NL'
   ) {
     // Dutch address, autofill street and locality fields.
-    $form['page_address_postal_code'] = array(
+    $form['input']['page_address_postal_code'] = array(
       '#title'         => 'Postcode',
       '#type'          => 'textfield',
       '#required'      => TRUE,
@@ -138,7 +158,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
         'callback' => 'memberform_ajax_callback',
       ),
     );
-    $form['page_address_house_number'] = array(
+    $form['input']['page_address_house_number'] = array(
       '#title'         => 'Huisnummer',
       '#type'          => 'textfield',
       '#required'      => TRUE,
@@ -147,7 +167,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
         'callback' => 'memberform_ajax_callback',
       ),
     );
-    $form['page_address_house_number_addition'] = array(
+    $form['input']['page_address_house_number_addition'] = array(
       '#title'         => 'Huisnummer toevoeging',
       '#type'          => 'textfield',
     );
@@ -158,49 +178,53 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
       if (!is_object($address_data) && !empty($address_data)) {
         // Show warning when postalcode housenumber combination is not found.
         $message = '<div class="messages warning">' . $address_data . '</div>';
-        $form['page_address_house_number']['#field_suffix'] = empty($form['page_address_house_number']['#field_suffix']) ? $message : $form['page_address_house_number']['#field_suffix'] . $message;
+        $form['input']['page_address_house_number']['#field_suffix'] = empty($form['input']['page_address_house_number']['#field_suffix']) ? $message : $form['input']['page_address_house_number']['#field_suffix'] . $message;
       }
     }
     // Set street value.
-    $form['page_address_street'] = array(
+    $form['input']['page_address_street'] = array(
       '#title'         => 'Straat',
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
     // Set locality value.
-    $form['page_address_locality'] = array(
+    $form['input']['page_address_locality'] = array(
       '#title'         => 'Plaats',
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
-    if (!empty($address_data->adres)) {
-      $form['page_address_street']['#default_value'] = $address_data->adres;
-    };
-    if (!empty($address_data->woonplaats)) {
-      $form['page_address_locality']['#default_value'] = $address_data->woonplaats;
-    };
+    if (!empty($storage['values']['address']['page_address_postal_code'])) {
+      if (!empty($address_data->adres)) {
+        $form['input']['page_address_street']['#default_value'] = $address_data->adres;
+        $form['input']['page_address_street']['#value'] = $address_data->adres;
+      };
+      if (!empty($address_data->woonplaats)) {
+        $form['input']['page_address_locality']['#default_value'] = $address_data->woonplaats;
+        $form['input']['page_address_locality']['#value'] = $address_data->woonplaats;
+      };
+    }
   }
   else {
     // International address.
-    $form['page_address_street'] = array(
+    $form['input']['page_address_street'] = array(
       '#title'         => 'Straat',
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
-    $form['page_address_house_number'] = array(
+    $form['input']['page_address_house_number'] = array(
       '#title'         => 'Huisnummer',
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
-    $form['page_address_house_number_addition'] = array(
+    $form['input']['page_address_house_number_addition'] = array(
       '#title'         => 'Huisnummer toevoeging',
       '#type'          => 'textfield',
     );
-    $form['page_address_postal_code'] = array(
+    $form['input']['page_address_postal_code'] = array(
       '#title'         => 'Postcode',
       '#type'          => 'textfield',
     );
-    $form['page_address_locality'] = array(
+    $form['input']['page_address_locality'] = array(
       '#title'         => 'Plaats',
       '#type'          => 'textfield',
       '#required'      => TRUE,
@@ -213,7 +237,12 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
  */
 function memberform_shared_page_contribution_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
-  $form['page_contribution_choice'] = array(
+
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['input']['page_contribution_choice'] = array(
     '#title' => 'Kwartaalbijdrage',
     '#type' => 'radios',
     '#options' => array(
@@ -230,7 +259,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
   );
 
   if ($storage['values']['contribution']['page_contribution_choice'] === 'custom') {
-    $form['page_contribution_custom'] = array(
+    $form['input']['page_contribution_custom'] = array(
       '#title' => 'Kies een bedrag (minimaal 5 euro)',
       '#type' => 'textfield',
       '#required' => TRUE,
@@ -238,7 +267,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
     );
   }
 
-  $form['page_contribution_payment_method'] = array(
+  $form['input']['page_contribution_payment_method'] = array(
     '#title' => 'Hoe wil je je bijdrage voldoen?',
     '#type' => 'radios',
     '#required' => TRUE,
@@ -253,7 +282,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
     ),
   );
 
-  $form['page_contribution_iban'] = array(
+  $form['input']['page_contribution_iban'] = array(
     '#title' => 'Wat is je bankrekeningnummer?',
     '#type' => 'textfield',
     '#states' => array(
@@ -297,7 +326,12 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
       );
       break;
   }
-  $form['page_payment_payment_method'] = array(
+
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['input']['page_payment_payment_method'] = array(
     '#title' => 'Betalingsgegevens',
     '#type' => 'radios',
     '#required' => TRUE,
@@ -309,7 +343,7 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
     ),
   );
 
-  $form['page_payment_iban'] = array(
+  $form['input']['page_payment_iban'] = array(
     '#title' => 'Wat is je bankrekeningnummer?',
     '#type' => 'textfield',
     '#states' => array(
@@ -338,6 +372,11 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
   $image_style = variable_get('memberform_gift_image_style', 'thumbnail');
 
   $memberships = memberform_shared_page_map_memberships($form_state);
+  $translate = memberform_memberships();
+
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
 
   foreach ($memberships as $membership) {
     $gift_options = array();
@@ -357,13 +396,13 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
     // Create image code.
     $image = file_load($selected_gift->image);
     $image_styled = empty($image) ? '' : theme('image_style', array('style_name' => $image_style, 'path' => $image->uri));
-    $form['page_gift_image_' . $selected_gift->id] = array(
+    $form['input']['page_gift_image_' . $selected_gift->id] = array(
       '#markup' => $image_styled,
     );
     // Show gift selection form.
-    $form['page_gift_select_' . $membership] = array(
-      '#title' => 'Welkomstgeschenk ' . $membership,
-      '#type' => 'radios',
+    $form['input']['page_gift_select_' . $membership] = array(
+      '#title' => 'Welkomstgeschenk ' . $translate[$membership],
+      '#type' => (count($gift_options) > 4 ) ? 'select' : 'radios',
       '#options' => $gift_options,
       '#default_value' => $selected_gift_id,
       '#ajax' => array(
@@ -448,6 +487,9 @@ function memberform_shared_validation($form, &$form_state) {
             form_set_error('page_contribution_custom', 'Vul een getal in.');
           }
           else {
+            if ($amount > 999999) {
+              form_set_error('page_contribution_custom', 'Vul een kleiner bedrag in.');
+            }
             $amount = str_replace('.', ',', $amount);
             $values['page_contribution_custom'] = $amount;
           }

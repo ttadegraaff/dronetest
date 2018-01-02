@@ -81,7 +81,7 @@ function memberform_rood_membership_page_red_form(&$form, &$form_state) {
 function memberform_rood_membership_page_person_details_form(&$form, &$form_state) {
   memberform_shared_page_person_details_form($form, $form_state);
   // Custom year range for membership and rood_membership forms.
-  $form['page_person_details_birth_date']['#date_year_range'] = '-29:-14';
+  $form['input']['page_person_details_birth_date']['#date_year_range'] = '-29:-14';
 }
 
 /**
@@ -125,7 +125,12 @@ function memberform_rood_membership_page_thanks_form(&$form, &$form_state) {
   else {
     $name = $storage['values']['start']['page_start_name'];
   }
-  $form['thanks'] = array(
+
+  $form['feedback'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['feedback']['thanks'] = array(
     '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
   );
 }

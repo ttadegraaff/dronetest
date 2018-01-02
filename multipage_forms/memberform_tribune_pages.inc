@@ -72,9 +72,9 @@ function memberform_tribune_page_quickfinish_form(&$form, &$form_state) {
 function memberform_tribune_page_person_details_form(&$form, &$form_state) {
   memberform_shared_page_person_details_form($form, $form_state);
   // Do no ask birth date.
-  unset($form['page_person_details_birth_date']);
+  unset($form['input']['page_person_details_birth_date']);
   // Ask for SP membership.
-  $form['page_person_details_spmember'] = array(
+  $form['input']['page_person_details_spmember'] = array(
     '#type' => 'checkbox',
     '#title' => 'Ik ben lid van de SP',
   );
@@ -113,7 +113,12 @@ function memberform_tribune_page_thanks_form(&$form, &$form_state) {
   else {
     $name = $storage['values']['start']['page_start_name'];
   }
-  $form['thanks'] = array(
+
+  $form['feedback'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['feedback']['thanks'] = array(
     '#markup' => '<p>Bedankt ' . check_plain($name) . '.</p><p>We gaan je aanmelding zo spoedig mogelijk verwerken.',
   );
 }

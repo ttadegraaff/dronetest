@@ -396,13 +396,8 @@ function memberform_overview_table($form_state) {
         ),
         'no_striping' => TRUE,
       );
-      $titles = array(
-        'lid_sp' => 'SP',
-        'lid_rood' => 'ROOD',
-        'tribune' => 'Tribune',
-        'spanning' => 'Spanning',
-      );
-      foreach ($memberships as $membership) {
+      $titles = memberform_memberships();
+        foreach ($memberships as $membership) {
         $membership_titles[] = $titles[$membership];
       }
       $memberships_line = memberform_natural_language_join($membership_titles, 'en');

@@ -740,3 +740,13 @@ function memberform_cache_data($cache_name, $callback, $limit = 28800) {
   }
   return FALSE;
 }
+
+function memberform_memberships() {
+  $memberships = array(
+    'lid_sp' => 'SP',
+    'lid_rood' => 'ROOD',
+    'tribune' => 'Tribune',
+    'spanning' => 'Spanning',
+  );
+  return $memberships;
+}

@@ -10,7 +10,7 @@
  *   Example:
  *
  *   function memberform_intern_page_start_form(&$form, $storage, $values) {
- *     $form['page_start_choice'] = array(
+ *     $form['input']['page_start_choice'] = array(
  *       '#type' => 'radios',
  *       '#title' => 'Maak een keuze',
  *       '#options' => array('colors' => 'Kleuren', 'tastes' => 'Smaken'),
@@ -53,47 +53,52 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $storage = &$form_state['storage'];
   $values = &$storage['values'];
 
-  $form['page_start_first_name'] = array(
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['input']['page_start_first_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Voornaam',
     '#required' => TRUE,
     '#default_value' => $first_name,
   );
 
-  $form['page_start_middle_name'] = array(
+  $form['input']['page_start_middle_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Tussenvoegsel',
     '#default_value' => $middle_name,
   );
 
-  $form['page_start_last_name'] = array(
+  $form['input']['page_start_last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Achternaam',
     '#required' => TRUE,
     '#default_value' => $last_name,
   );
 
-  $form['page_start_email'] = array(
+  $form['input']['page_start_email'] = array(
     '#type' => 'textfield',
     '#title' => 'E-mailadres',
   );
 
-  $form['page_start_phone'] = array(
+  $form['input']['page_start_phone'] = array(
     '#type' => 'textfield',
     '#title' => 'Telefoonnummer',
   );
 
-  $form['page_start_birth_date'] = array(
+  $form['input']['page_start_birth_date'] = array(
     '#title'           => 'Geboortedatum',
     '#type'            => 'date_select',
     '#date_format'     => 'd-m-Y',
-    '#date_year_range' => '-100:-14',
+    '#date_year_range' => '-120:-14',
     '#required' => TRUE,
+    '#date_label_position' => 'within',
   );
 
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   $countries = country_get_list();
-  $form['page_start_country'] = array(
+  $form['input']['page_start_country'] = array(
     '#title'         => 'Land',
     '#type'          => 'select',
     '#options'       => $countries,
@@ -110,7 +115,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     $values['start']['page_start_country'] === 'NL'
   ) {
     // Dutch address, autofill street and locality fields.
-    $form['page_start_postal_code'] = array(
+    $form['input']['page_start_postal_code'] = array(
       '#title'         => 'Postcode',
       '#name'          => 'page_start_postal_code',
       '#type'          => 'textfield',
@@ -119,7 +124,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
         'callback' => 'memberform_ajax_callback',
       ),
     );
-    $form['page_start_house_number'] = array(
+    $form['input']['page_start_house_number'] = array(
       '#title'         => 'Huisnummer',
       '#name'          => 'page_start_house_number',
       '#type'          => 'textfield',
@@ -129,7 +134,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
         'callback' => 'memberform_ajax_callback',
       ),
     );
-    $form['page_start_house_number_addition'] = array(
+    $form['input']['page_start_house_number_addition'] = array(
       '#title'         => 'Huisnummer toevoeging',
       '#type'          => 'textfield',
     );
@@ -146,7 +151,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
               if (!is_object($address_data) && !empty($address_data)) {
                 // Show warning when postalcode housenumber combination is not found.
                 $message = '<div class="messages warning">' . $address_data . '</div>';
-                $form['page_start_house_number']['#field_suffix'] = empty($form['page_start_house_number']['#field_suffix']) ? $message : $form['page_start_house_number']['#field_suffix'] . $message;
+                $form['input']['page_start_house_number']['#field_suffix'] = empty($form['input']['page_start_house_number']['#field_suffix']) ? $message : $form['input']['page_start_house_number']['#field_suffix'] . $message;
               }
               else {
                 $storage['values']['start']['page_start_street'] = $address_data->adres;
@@ -159,13 +164,13 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     }
 
     // Set street value.
-    $form['page_start_street'] = array(
+    $form['input']['page_start_street'] = array(
       '#title'         => 'Straat',
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
     // Set locality value.
-    $form['page_start_locality'] = array(
+    $form['input']['page_start_locality'] = array(
       '#title'         => 'Plaats',
       '#type'          => 'textfield',
       '#required'      => TRUE,
@@ -173,25 +178,25 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   }
   else {
     // International address.
-    $form['page_start_street'] = array(
+    $form['input']['page_start_street'] = array(
       '#title'         => 'Straat',
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
-    $form['page_start_house_number'] = array(
+    $form['input']['page_start_house_number'] = array(
       '#title'         => 'Huisnummer',
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
-    $form['page_start_house_number_addition'] = array(
+    $form['input']['page_start_house_number_addition'] = array(
       '#title'         => 'Huisnummer toevoeging',
       '#type'          => 'textfield',
     );
-    $form['page_start_postal_code'] = array(
+    $form['input']['page_start_postal_code'] = array(
       '#title'         => 'Postcode',
       '#type'          => 'textfield',
     );
-    $form['page_start_locality'] = array(
+    $form['input']['page_start_locality'] = array(
       '#title'         => 'Plaats',
       '#type'          => 'textfield',
       '#required'      => TRUE,
@@ -208,7 +213,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   if ($age < 14 || $age > 27) {
     unset ($options['red_member']);
   }
-  $form['page_start_membership_type'] = array(
+  $form['input']['page_start_membership_type'] = array(
     '#title' => 'Type lidmaatschap',
     '#type' => 'checkboxes',
     '#options' => $options,
@@ -222,11 +227,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $memberships = $values['start']['page_start_membership_type'];
   $gift_options = array();
   $image_style = variable_get('memberform_gift_image_style', 'thumbnail');
-  $translate = array(
-    'lid_sp' => 'SP',
-    'lid_rood' => 'ROOD',
-  );
-
+  $translate = memberform_memberships();
   foreach ($memberships as $membership) {
     if (!empty($membership)) {
       switch ($membership) {
@@ -249,13 +250,13 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
           // Create image code.
           $image = file_load($selected_gift->image);
           $image_styled = empty($image) ? '' : theme('image_style', array('style_name' => $image_style, 'path' => $image->uri));
-          $form['page_start_image_' . $selected_gift->id] = array(
+          $form['input']['page_start_image_' . $selected_gift->id] = array(
             '#markup' => $image_styled,
           );
           // Show gift selection form.
-          $form['page_start_select_' . $membership] = array(
+          $form['input']['page_start_select_' . $membership] = array(
             '#title' => 'Welkomstgeschenk ' . $translate[$membership],
-            '#type' => 'radios',
+            '#type' => (count($gift_options) > 4 ) ? 'select' : 'radios',
             '#options' => $gift_options,
             '#default_value' => $selected_gift_id,
             '#ajax' => array(
@@ -272,7 +273,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     $values['start']['page_start_membership_type']['lid_sp'] ||
     $values['start']['page_start_membership_type']['lid_rood']
   ) {
-    $form['page_start_contribution_choice'] = array(
+    $form['input']['page_start_contribution_choice'] = array(
       '#title' => 'Kwartaalbijdrage',
       '#type' => 'radios',
       '#options' => array(
@@ -296,7 +297,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
       $values['start']['page_start_membership_type']['lid_rood'] &&
       $values['start']['page_start_contribution_choice'] === 'custom'
     )) {
-    $form['page_start_contribution_custom'] = array(
+    $form['input']['page_start_contribution_custom'] = array(
       '#title' => 'Kies een bedrag (minimaal 5 euro)',
       '#type' => 'textfield',
       '#required' => TRUE,
@@ -308,7 +309,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     $values['start']['page_start_membership_type']['lid_sp'] ||
     $values['start']['page_start_membership_type']['lid_rood']
   ) {
-    $form['page_start_contribution_payment_method'] = array(
+    $form['input']['page_start_contribution_payment_method'] = array(
       '#title' => 'Hoe wil je je lidmaatschapsbijdrage voldoen?',
       '#type' => 'radios',
       '#required' => TRUE,
@@ -336,7 +337,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
             'auto_5' => 'Automatische incasso, € 5 per kwartaal',
             'accept_24' => 'Acceptgiro, € 24 per jaar',
           );
-          $form['page_start_tribune_payment_method'] = array(
+          $form['input']['page_start_tribune_payment_method'] = array(
             '#title' => 'Betalingsgegevens Tribune',
             '#type' => 'radios',
             '#required' => TRUE,
@@ -361,7 +362,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
               'accept_24' => 'Acceptgiro € 24 (€ 12 voor leden)',
             );
           }
-          $form['page_start_spanning_payment_method'] = array(
+          $form['input']['page_start_spanning_payment_method'] = array(
             '#title' => 'Betalingsgegevens Spanning',
             '#type' => 'radios',
             '#required' => TRUE,
@@ -397,7 +398,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
       )
     )
   ) {
-    $form['page_start_iban'] = array(
+    $form['input']['page_start_iban'] = array(
       '#title' => 'Wat is je bankrekeningnummer?',
       '#type' => 'textfield',
     );
@@ -459,6 +460,9 @@ function memberform_intern_page_form_validate($form, &$form_state) {
             form_set_error('page_start_contribution_custom', 'Vul een getal in.');
           }
           else {
+            if ($amount > 999999) {
+              form_set_error('page_contribution_custom', 'Vul een kleiner bedrag in.');
+            }
             $amount = str_replace('.', ',', $amount);
             if ($amount < 5) {
               form_set_error('page_start_contribution_custom', 'Kies een bedrag van minimaal 5 euro.');
