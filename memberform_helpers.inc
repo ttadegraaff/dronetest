@@ -672,16 +672,16 @@ function memberform_get_source_options() {
  * Creates note.
  */
 function memberform_create_note($contact_id, $note) {
+  $note_field = variable_get('spaanmelden_id_custom_reden_lidmaatschap', 'custom_218');
   $api = spciviapi_get_api();
   $params = array(
     'version' => 3,
     'entity_id' => $contact_id,
-    'note' => $note,
-    'subject' => 'Waarom nu lid?',
+    $note_field => $note,
   );
-  $api->Note->create($params);
+  $api->CustomValue->create($params);
   $result = $api->result();
-  if (!$result || $result->is_error || !$result->id) {
+  if (!$result || $result->is_error || !$result->values) {
     drupal_set_message('Er is iets misgegaan met het opslaan van de informatie. Neem contact op met webmaster@sp.nl.', 'error');
     throw new \Exception('CiviCRM API error (Note): ' . $result->error_message);
   }
