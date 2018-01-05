@@ -148,9 +148,7 @@ function memberform_tribune_page_form_validate($form, &$form_state) {
  *
  * Set $storage['next_page'] to value of next page. The text of the submit
  * button can be set to 'submit' instead of 'next' by setting
- * $storage['finish_page'] to TRUE. Next a thanks page without submit buttons
- * can be set: $storage['reset_page'] to TRUE and the next page will have no
- * submit buttons.
+ * $storage['finish_page'] to TRUE.
  */
 function memberform_tribune_page_form_submit($form, &$form_state) {
   $values = $form_state['values'];

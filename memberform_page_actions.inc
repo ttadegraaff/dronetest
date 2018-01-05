@@ -7,6 +7,7 @@
 /**
  * Thanks page content.
  */
+/*
 function memberform_page_thanks() {
   $name = base64_decode($_GET['name']);
 
@@ -27,6 +28,7 @@ function memberform_page_thanks() {
     . memberform_get_qline() . '</div>';
   return $ret;
 }
+*/
 
 /**
  * Error page content.

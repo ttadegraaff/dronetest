@@ -531,9 +531,7 @@ function memberform_shared_validation($form, &$form_state) {
  *
  * Set $storage['next_page'] to value of next page. The text of the submit
  * button can be set to 'submit' instead of 'next' by setting
- * $storage['finish_page'] to TRUE. Next a thanks page without submit buttons
- * can be set: $storage['reset_page'] to TRUE and the next page will have no
- * submit buttons.
+ * $storage['finish_page'] to TRUE.
  */
 function memberform_shared_submit($form, &$form_state) {
   if (isset($form_state['form_errors'])) {
@@ -630,8 +628,8 @@ function memberform_shared_submit($form, &$form_state) {
 
         case 'summary':
           $storage['next_page'] = 'thanks';
-          $storage['reset_page'] = TRUE;
           $storage['finish_page'] = FALSE;
+          $storage['last_page'] = TRUE;
           break;
       }
 
@@ -642,42 +640,22 @@ function memberform_shared_submit($form, &$form_state) {
         $form_state['redirect'] = array('aanmelden/fout');
       }
 
-      // Send confirmation mail when submitting summary page.
-      $fields = $store_result['fields'];
-      switch ($trigger) {
-        case 'next_page':
-          switch ($storage['current_page']) {
-            case 'summary':
-              $mail = drupal_mail(
-                'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
-                array(
-                  'form_state'      => $form_state,
-                  'hash'            => $storage['hash'],
-                  'membership_type' => $fields['membership_type'],
-                  'format'          => SWIFTMAILER_FORMAT_HTML,
-                )
-              );
-              if (!empty($mail['send'])) {
-
-                $name = implode(' ', array(
-                  $fields['first_name'],
-                  $fields['middle_name'],
-                  $fields['last_name'],
-                ));
-
-                $form_state['redirect'] = array(
-                  'aanmelden/bedankt',
-                  array(
-                    'query' => array(
-                      'name' => base64_encode($name),
-                      'membership_type' => $fields['membership_type'],
-                      'token' => drupal_get_token($name),
-                    ),
-                  ),
-                );
-              }
-              break;
-          }
+      if ($storage['current_page'] == 'summary') {
+        // Send confirmation mail when submitting summary page.
+        $fields = $store_result['fields'];
+        $mail = drupal_mail(
+          'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
+          array(
+            'form_state'      => $form_state,
+            'hash'            => $storage['hash'],
+            'membership_type' => $fields['membership_type'],
+            'format'          => SWIFTMAILER_FORMAT_HTML,
+          )
+        );
+        if (empty($mail['send'])) {
+          $form_state['next_page'] = $storage['current_page'];
+          drupal_set_message('Het is niet gelukt om de bevestigingsmail te versturen. Houdt dit probleem aan, neem dan contact op met webmaster@sp.nl', 'error');
+        }
       }
       break;
   }

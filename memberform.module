@@ -120,6 +120,7 @@ function memberform_menu() {
     'weight'           => 13,
   ];
 
+  /*
   $items['aanmelden/bedankt'] = [
       'title'           => 'Bedankt voor je aanmelding',
       'type'            => MENU_CALLBACK,
@@ -127,6 +128,7 @@ function memberform_menu() {
       'access callback' => TRUE,
       'file'            => 'memberform_page_actions.inc',
   ];
+  */
 
   $items['aanmelden/fout'] = [
       'title'           => 'Er is een fout opgetreden',

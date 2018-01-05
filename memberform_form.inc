@@ -89,7 +89,7 @@ function memberform_form($form, &$form_state, $form_name) {
   if ($storage['step'] > 1) {
     $settings_callback = 'memberform_' . $form_name . '_settings';
     $no_back_pages = $settings_callback('no_back_pages');
-    if (!in_array($storage['current_page'], $no_back_pages) && empty($storage['reset_page'])) {
+    if (!in_array($storage['current_page'], $no_back_pages)) {
       $form['action']['previous_page'] = array(
         '#type' => 'submit',
         '#value' => 'Terug',
@@ -110,7 +110,7 @@ function memberform_form($form, &$form_state, $form_name) {
     $next_button_text = 'Insturen';
     $next_button_name = 'finish_page';
   }
-  if (empty($storage['reset_page']) || $storage['finish_page']) {
+  if (empty($storage['last_page'])) {
     $form['action']['next_page'] = array(
       '#type' => 'submit',
       '#value' => $next_button_text,
@@ -125,10 +125,10 @@ function memberform_form($form, &$form_state, $form_name) {
     $form['action']['#type'] = 'fieldset';
   }
 
-  // Clear form history when on final page.
-  if (!empty($storage['reset_page'])) {
-    memberform_clear_form($form_state);
-  }
+// Clear form history when on final page.
+if (!empty($storage['last_page'])) {
+  memberform_clear_form($form_state);
+}
 
   return $form;
 }
@@ -209,7 +209,6 @@ function memberform_form_submit($form, &$form_state) {
       $storage['current_page'] = array_pop($storage['page_history']);
       unset($storage['next_page']);
       unset($storage['finish_page']);
-      unset($storage['reset_page']);
       break;
 
     case 'next_page':
