@@ -39,7 +39,7 @@ function memberform_intern_settings($variable_name) {
     'form_title' => 'Aanmelden intern',
     'no_back_pages' => array(),
     'titles' => array(
-      'start' => 'Lidmaatschapsgegevens',
+      'start' => '',
       'summary' => 'Controleer gegevens',
     ),
   );
@@ -242,6 +242,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   if (!empty($memberships)) {
     $form['input_gift'] = array(
       '#type' => 'fieldset',
+      '#title' => 'Welkomstgeschenk',
     );
   }
   foreach ($memberships as $membership) {
