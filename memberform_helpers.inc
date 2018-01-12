@@ -52,8 +52,10 @@ function memberform_get_storage($sid = NULL, $form_name = '') {
     // Get storage from database if available.
     $query = "SELECT form_values FROM {memberform_storage} WHERE sid = :sid";
     $result = db_query($query, array(':sid' => $sid))->fetchAssoc();
-    $storage = unserialize($result['form_values']);
-    $storage['sid'] = $sid;
+    if (!empty($result['form_values'])) {
+      $storage = unserialize($result['form_values']);
+      $storage['sid'] = $sid;
+    }
   }
   return $storage;
 }
@@ -65,25 +67,14 @@ function memberform_get_storage($sid = NULL, $form_name = '') {
  *   Database storage variable.
  */
 function memberform_store_form_data(array &$storage = NULL) {
-  if (isset($storage)) {
-    if (isset($storage['sid'])) {
-      // Update database storage.
-      db_update('memberform_storage')
-        ->fields(array(
-          'form_values' => serialize($storage),
-        ))
-        ->condition('sid', $storage['sid'])
-        ->execute();
-    }
-    else {
-      // Insert new database storage.
-      $storage['sid'] = db_insert('memberform_storage')
-        ->fields(array(
-          'hash' => md5(drupal_random_bytes(32)),
-          'form_values' => serialize($storage),
-        ))
-        ->execute();
-    }
+  if (isset($storage['sid'])) {
+    // Update database storage.
+    db_merge('memberform_storage')
+    ->key(array('sid' => $storage['sid']))
+    ->fields(array(
+      'form_values' => serialize($storage),
+    ))
+    ->execute();
   }
 }
 

@@ -42,6 +42,9 @@ function memberform_intern_settings($variable_name) {
       'start' => '',
       'summary' => 'Controleer gegevens',
     ),
+    'permissions' => array(
+      'administer signup forms',
+    ),
   );
   return $settings[$variable_name];
 }
@@ -50,6 +53,13 @@ function memberform_intern_settings($variable_name) {
  * Form definition for start page.
  */
 function memberform_intern_page_start_form(&$form, &$form_state) {
+  // Start with clean data and set defaults ($storage['values']) when editing existing submission.
+  if (!empty(arg(2)) && empty($form_state['storage']['edit_form']) && filter_var(arg(2), FILTER_VALIDATE_INT)) {
+    $form_state['storage']['sid'] = arg(2);
+    memberform_clear_form($form_state);
+    memberform_intern_set_defaults($form_state);
+  }
+
   $storage = &$form_state['storage'];
   $values = &$storage['values'];
 
@@ -62,20 +72,17 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     '#type' => 'textfield',
     '#title' => 'Voornaam',
     '#required' => TRUE,
-    '#default_value' => $first_name,
   );
 
   $form['input_person_details']['page_start_middle_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Tussenvoegsel',
-    '#default_value' => $middle_name,
   );
 
   $form['input_person_details']['page_start_last_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Achternaam',
     '#required' => TRUE,
-    '#default_value' => $last_name,
   );
 
   $form['input_person_details']['page_start_email'] = array(
@@ -213,15 +220,24 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     '#title' => 'Lidmaatschapsgegevens',
   );
 
-  $options = array(
-    'lid_sp' => 'SP',
-    'lid_rood' => 'ROOD',
-    'tribune' => 'Tribune',
-    'spanning' => 'Spanning',
-  );
+  $options = memberform_memberships();
+
   $age = memberform_get_age($values['start']['page_start_birth_date']);
   if ($age < 14 || $age > 27) {
     unset ($options['red_member']);
+  }
+  // When editing existing submission, limit options.
+  if (!empty($storage['edit_form'])) {
+    $membership_type = $storage['membership_type'];
+    if ($membership_type === 'lid_sprood') {
+      $options = array(
+        'lid_sp' => $options['lid_sp'],
+        'lid_rood' => $options['lid_rood'],
+      );
+    }
+    else {
+      $options = array($membership_type => $options[$membership_type]);
+    }
   }
   $form['input_membership']['page_start_membership_type'] = array(
     '#title' => 'Type lidmaatschap',
@@ -348,7 +364,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   }
 
   $is_member = TRUE;
-  if (empty($memberships['lid_sp']) && empty($memberships['lid_rood'])) {
+  if (empty($memberships['lid_sp']) && empty($memberships['lid_rood']) && empty($storage['is_member'])) {
     $is_member = FALSE;
   }
   foreach ($memberships as $membership) {
@@ -601,20 +617,20 @@ function memberform_intern_page_form_submit($form, &$form_state) {
     $fields['payment_method'] = _hv($values['page_start_contribution_payment_method']);
     // Lid SP and ROOD.
     if ($membership_type['lid_sp'] && $membership_type['lid_rood']) {
-      $hash = memberform_get_hash('lid_sprood', $name);
+      $hash = empty($storage['hash']) ? memberform_get_hash('lid_sprood', $name) : $storage['hash'];
       $fields['membership_type'] = 'lid_sprood';
       $fields['welcome_present_sp'] = _hv($values['page_start_select_lid_sp']);
       $fields['welcome_present_rood'] = _hv($values['page_start_select_lid_rood']);
     }
     // Lid SP.
     elseif ($membership_type['lid_sp']) {
-      $hash = memberform_get_hash('lid_sp', $name);
+      $hash = empty($storage['hash']) ? memberform_get_hash('lid_sp', $name) : $storage['hash'];
       $fields['membership_type'] = 'lid_sp';
       $fields['welcome_present_sp'] = _hv($values['page_start_select_lid_sp']);
     }
     // Lid ROOD.
     elseif ($membership_type['lid_rood']) {
-      $hash = memberform_get_hash('lid_rood', $name);
+      $hash = empty($storage['hash']) ? memberform_get_hash('lid_rood', $name) : $storage['hash'];
       $fields['membership_type'] = 'lid_rood';
       $fields['welcome_present_rood'] = _hv($values['page_start_select_lid_rood']);
     }
@@ -626,7 +642,7 @@ function memberform_intern_page_form_submit($form, &$form_state) {
     $fields['welcome_present_rood'] = '';
     // Lid Tribune.
     if ($membership_type['tribune']) {
-      $hash = memberform_get_hash('tribune', $name);
+      $hash = empty($storage['hash']) ? memberform_get_hash('tribune', $name) : $storage['hash'];
       $fields['membership_type'] = 'tribune';
       $payment_info = explode('_', $values['page_start_tribune_payment_method']);
       $fields['contribution'] = _hv(memberform_clean_amount($payment_info[1]));
@@ -635,7 +651,7 @@ function memberform_intern_page_form_submit($form, &$form_state) {
     }
     // Lid Spanning.
     if ($membership_type['spanning']){
-      $hash = memberform_get_hash('spanning', $name);
+      $hash = empty($storage['hash']) ? memberform_get_hash('spanning', $name) : $storage['hash'];
       $fields['membership_type'] = 'spanning';
       $payment_info = explode('_', $values['page_start_spanning_payment_method']);
       $fields['contribution'] = _hv(memberform_clean_amount($payment_info[1]));
@@ -660,5 +676,90 @@ function memberform_intern_store_db(&$form_state, $hash, $fields) {
 
   if (!$id) {
     $form_state['redirect'] = array('aanmelden/fout');
+  }
+}
+
+function memberform_intern_set_defaults(&$form_state) {
+  $storage = &$form_state['storage'];
+  $values = &$storage['values'];
+
+  $storage['edit_form'] = TRUE;
+  $storage['current_page'] = 'start';
+
+  $submission_data = db_select('memberform_submissions', 's')
+    ->fields('s')
+    ->condition('s.id', arg(2))
+    ->execute()
+    ->fetchAssoc();
+
+  if (!empty($submission_data)) {
+    // Store submission id and hash.
+    $storage['sid'] = arg(2);
+    $storage['hash'] = $submission_data['hash'];
+    $storage['form_name'] = 'intern';
+    $storage['membership_type'] = $submission_data['membership_type'];
+    $_SESSION['memberform']['intern']['sid'] = arg(2);
+
+    // Set generic fields.
+    $generic_fields = array(
+      'firstname' => 'first_name',
+      'middlename' => 'middle_name',
+      'lastname' => 'last_name',
+      'birthdate' => 'birth_date',
+      'email' => 'email',
+      'phone' => 'phone',
+      'phone_mobile' => 'phone',
+      'country' => 'country',
+      'zipcode' => 'postal_code',
+      'housenumber' => 'house_number',
+      'housenumber_suffix' => 'house_number_addition',
+      'street' => 'street',
+      'city' => 'locality',
+      'bank_account' => 'iban',
+      'welcome_present_sp' => 'select_lid_sp',
+      'welcome_present_rood' => 'select_lid_rood',
+    );
+
+    foreach ($generic_fields as $key => $value) {
+      if (!empty($submission_data[$key])) {
+        $values['start']['page_start_' . $value] = $submission_data[$key];
+      }
+    }
+  }
+
+  $contr = $submission_data['contribution'];
+  $contr =  intval(substr($contr, 0, strlen($contr) - 3));
+  if ($submission_data['membership_type'] === 'lid_sprood' || $submission_data['membership_type'] === 'lid_sp') {
+    // Set membership.
+    $values['start']['page_start_membership_type']['lid_sp'] = 'lid_sp';
+    // Set welcome present SP.
+    $values['start']['page_start_select_lid_sp'] = $submission_data['welcome_present_sp'];
+    // Set contribution.
+    if (!empty($submission_data['contribution'])) {
+      if (in_array($contr, array('10', '20', '50'))) {
+        $values['start']['page_start_contribution_choice'] = $contr;
+      }
+      else {
+        $values['start']['page_start_contribution_choice'] = 'custom';
+        $values['start']['page_start_contribution_custom'] = $contr;
+      }
+    }
+    // Set payment method.
+    $values['start']['page_start_contribution_payment_method'] = $submission_data['payment_method'];
+  }
+  if ($submission_data['membership_type'] === 'lid_rood' || $submission_data['membership_type'] === 'lid_sprood') {
+    $values['start']['page_start_membership_type']['lid_rood'] = 'lid_rood';
+    $values['start']['page_start_select_lid_rood'] = $submission_data['welcome_present_rood'];
+  }
+  if ($submission_data['membership_type'] === 'tribune') {
+    $values['start']['page_start_membership_type']['tribune'] = 'tribune';
+    $values['start']['page_start_tribune_payment_method'] = $submission_data['payment_method'] . '_' . $contr;
+  }
+  if ($submission_data['membership_type'] === 'spanning') {
+    $values['start']['page_start_membership_type']['spanning'] = 'spanning';
+    $values['start']['page_start_spanning_payment_method'] = $submission_data['payment_method'] . '_' . $contr;
+    if (in_array($contr, array('12'))) {
+      $storage['is_member'] = TRUE;
+    }
   }
 }

@@ -9,7 +9,7 @@
  */
 function memberform_schema() {
   $schema['memberform_storage'] = array(
-    'description' => 'Stores memberform values.',
+    'description' => 'Stores memberform storage.',
     'fields' => array(
       'sid' => array(
         'description' => 'Submission id.',
@@ -17,25 +17,14 @@ function memberform_schema() {
         'size' => 'big',
         'not null' => TRUE,
       ),
-      'hash' => array(
-        'description' => 'Unique submission hash.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-      ),
       'form_values' => array(
-        'description' => 'The submission values (json encoded).',
+        'description' => 'The form storage (json encoded).',
         'type' => 'blob',
         'size' => 'normal',
       ),
     ),
     'primary key' => array(
       'sid',
-    ),
-    'unique keys' => array(
-      'hash' => array(
-        'hash',
-      ),
     ),
   );
 
@@ -285,4 +274,11 @@ function memberform_update_7005() {
   $schema = memberform_schema();
   $spec = $schema['memberform_submissions']['fields']['form'];
   db_add_field('memberform_submissions', 'form', $spec);
+}
+
+/**
+ * Removes hash column form memberform_storage table.
+ */
+function memberform_update_7006() {
+  db_drop_field('memberform_storage', 'hash');
 }

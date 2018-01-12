@@ -639,6 +639,9 @@ function memberform_shared_submit($form, &$form_state) {
       if (!$store_result['submission_id']) {
         $form_state['redirect'] = array('aanmelden/fout');
       }
+      else {
+        $storage['sid'] = $store_result['submission_id'];
+      }
 
       if ($storage['current_page'] == 'summary') {
         // Send confirmation mail when submitting summary page.
@@ -715,12 +718,13 @@ function memberform_store_submission($form_state) {
     'form_page' => $storage['current_page'],
   );
 
-  $id = db_merge('memberform_submissions')
+  db_merge('memberform_submissions')
     ->key(array(
       'hash' => $storage['hash'],
     ))
     ->fields($fields)
     ->execute();
+  $submission_id = Database::getConnection()->lastInsertId();
 
-  return array('submission_id' => $id, 'fields' => $fields);
+  return array('submission_id' => $submission_id, 'fields' => $fields);
 }

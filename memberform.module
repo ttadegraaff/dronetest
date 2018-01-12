@@ -35,6 +35,11 @@ function memberform_menu() {
       'file' => 'memberform_form.inc',
       'access callback' => TRUE,
     );
+    // Optionally set user access permissions.
+    if (!empty($settings_callback('permissions'))) {
+      $items[$path_name]['access callback'] = 'user_access';
+      $items[$path_name]['access arguments'] = $settings_callback('permissions');
+    }
   }
 
   $items['admin/config/sp/aanmelden'] = [

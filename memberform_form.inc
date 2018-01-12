@@ -10,7 +10,9 @@
  */
 function memberform_form($form, &$form_state, $form_name) {
   $values = isset($form_state['values']) ? $form_state['values'] : array();
-  $storage = memberform_get_storage(NULL, $form_name);
+
+  $sid = empty($form_state['storage']['sid']) ? NULL : $form_state['storage']['sid'];
+  $storage = memberform_get_storage($sid, $form_name);
 
   // Store form name.
   $storage['form_name'] = $form_name;
@@ -25,7 +27,7 @@ function memberform_form($form, &$form_state, $form_name) {
   $form_state['storage'] = $storage;
   $storage = &$form_state['storage'];
 
-  if ($storage['form_name'] === 'intern') {
+  if ($form_name === 'intern') {
     $storage['finish_page'] = TRUE;
   }
 
@@ -50,6 +52,7 @@ function memberform_form($form, &$form_state, $form_name) {
     ),
   );
 
+  // Add header image.
   $file_path = drupal_get_path('module', 'memberform') . '/header_images/' . $storage['current_page'] . '.jpg';
   if (file_exists($file_path)) {
     global $base_url;
@@ -167,11 +170,14 @@ function memberform_form_post_custom_validate($form, &$form_state) {
     }
   }
 
-  // Store data.
-  memberform_store_form_data($storage);
+  // Make sure form data is stored on ajax callback.
+  if (!empty($storage['sid'])) {
+    // Store data.
+    memberform_store_form_data($storage);
 
-  // Store submission id in session.
-  $_SESSION['memberform'][$storage['form_name']]['sid'] = $storage['sid'];
+    // Store submission id in session.
+    $_SESSION['memberform'][$storage['form_name']]['sid'] = $storage['sid'];
+  }
 
   $form_state['form_errors'] = form_get_errors();
   memberform_remove_errors($form_state);
@@ -236,15 +242,13 @@ function memberform_ajax_callback($form, &$form_state) {
 }
 
 function memberform_clear_form(&$form_state) {
-  if (
-    !empty($form_state['triggering_element']['#name']) &&
-    in_array($form_state['triggering_element']['#name'], array('next_page', 'finish_page'))
-  ) {
-    unset($_SESSION['memberform']);
-    unset($form_state['storage']);
-    return TRUE;
+  if (!empty($form_state['storage']['sid'])) {
+    $number = db_delete('memberform_storage')
+    ->condition('sid', $form_state['storage']['sid'])
+    ->execute();
   }
-  return FALSE;
+  unset($_SESSION['memberform']);
+  unset($form_state['storage']);
 }
 
 function memberform_modify_form_elements(&$item, &$form_state, $key) {

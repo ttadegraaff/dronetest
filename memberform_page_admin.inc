@@ -213,9 +213,9 @@ function memberform_view_submissions() {
     'created' => 'Aangemeld',
     'verified' => 'Geverifieerd',
     'submitted' => 'Toegevoegd',
-    'options' => 'Opties',
     'form' => 'Formulier',
     'form_page' => 'Ingevuld t/m',
+    'options' => 'Opties',
   );
 
   $data = array();
@@ -240,9 +240,9 @@ function memberform_view_submissions() {
       'created' => date('d-m-Y H:i', $s->created),
       'verified' => ($s->verified ? date('d-m-Y H:i', $s->verified) : '-'),
       'submitted' => ($s->errormsg ? date('d-m-Y H:i', $s->submitted) . ' - <span style="color:#c00;font-weight:bold;">ERROR</span>' : ($s->submitted ? date('d-m-Y H:i', $s->submitted) . ' - <span style="color:#0c0;font-weight:bold;">' . ($s->contact_id ? $s->contact_id : 'OK') . '</span>' : '-')),
-      'options' => l(t('Details'), 'admin/config/sp/aanmelden/submission/' . $s->id),
       'form' => $form_title,
       'form_page' => $form_page_title,
+      'options' => '<ul><li>' . l(t('Details'), 'admin/config/sp/aanmelden/submission/' . $s->id, array('attributes' => array('target' => '_blank'))) . '</li><li>' . l(t('Bewerk'), 'aanmelden/intern/' . $s->id, array('attributes' => array('target' => '_blank'))) . '</li></ul>',
     );
   }
 
