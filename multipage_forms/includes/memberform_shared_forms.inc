@@ -33,12 +33,37 @@ function memberform_shared_page_start_form(&$form, &$form_state) {
  * Form definition for thanks phone page.
  */
 function memberform_shared_page_quickfinish_form(&$form, &$form_state) {
+  $form['action']['call_back'] = array(
+    '#type' => 'submit',
+    '#value' => 'Bel me om lid te worden',
+    '#name' => 'call_back',
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+
+  $form['action']['next_page'] = array(
+    '#type' => 'submit',
+    '#value' => 'Ik vul mijn gegevens meteen zelf in',
+    '#name' => 'next_page',
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
+  );
+}
+
+/**
+ *
+ */
+function memberform_shared_page_call_back_feedback(&$form, &$form_state) {
   $form['feedback'] = array(
     '#type' => 'fieldset',
   );
 
-  $form['feedback']['page_quickfinish_feedback'] = array(
-    '#markup' => '<p>We nemen binnenkort contact met je op om het lidmaatschap af te ronden.</p><p>Ga verder als je zelf je inschrijving wilt afronden.</p>',
+  $form['feedback']['call_back_feedback'] = array(
+      '#markup' => '<p>Bedankt voor je aanmedling als lid van de SP! We bellen je binnenkort om de aanmelding af te ronden.</p>',
   );
 }
 
@@ -547,6 +572,7 @@ function memberform_shared_submit($form, &$form_state) {
   switch ($trigger) {
     case 'next_page':
     case 'finish_page':
+    case 'call_back':
       switch ($storage['current_page']) {
         case 'start':
           // Set form navigation.
@@ -566,7 +592,16 @@ function memberform_shared_submit($form, &$form_state) {
           break;
 
         case 'quickfinish':
-          $storage['next_page'] = 'person_details';
+          switch ($trigger) {
+            case 'call_back':
+              $storage['next_page'] = 'thanks';
+              $storage['finish_page'] = FALSE;
+              $storage['last_page'] = TRUE;
+              break;
+            case 'next_page':
+              $storage['next_page'] = 'person_details';
+              break;
+          }
           break;
 
         case 'person_details':
@@ -613,7 +648,6 @@ function memberform_shared_submit($form, &$form_state) {
 
         case 'payment':
           $storage['next_page'] = 'summary';
-          $storage['finish_page'] = TRUE;
           // Store payment method and amount.
           $payment_info = explode('_', $values['page_payment_payment_method']);
           $storage['payment_method'] = $payment_info[0];

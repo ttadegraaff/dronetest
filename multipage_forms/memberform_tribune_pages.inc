@@ -118,9 +118,18 @@ function memberform_tribune_page_thanks_form(&$form, &$form_state) {
     '#type' => 'fieldset',
   );
 
-  $form['feedback']['thanks'] = array(
-    '#markup' => '<p>Bedankt ' . check_plain($name) . '.</p><p>We gaan je aanmelding zo spoedig mogelijk verwerken.',
-  );
+  switch (end($storage['page_history'])) {
+    case 'quickfinish':
+      $form['feedback']['thanks'] = array(
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de Tribune.</p><pJe aanmelding is gelukt. We bellen je binnenkort om je inschrijving af te ronden.',
+      );
+      break;
+    case 'summary':
+      $form['feedback']['thanks'] = array(
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de Tribune.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken.',
+      );
+      break;
+  }
 }
 
 /**

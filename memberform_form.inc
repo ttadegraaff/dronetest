@@ -113,7 +113,7 @@ function memberform_form($form, &$form_state, $form_name) {
     $next_button_text = 'Insturen';
     $next_button_name = 'finish_page';
   }
-  if (empty($storage['last_page'])) {
+  if (empty($storage['last_page']) && empty($form['action']['next_page'])) {
     $form['action']['next_page'] = array(
       '#type' => 'submit',
       '#value' => $next_button_text,
@@ -219,6 +219,7 @@ function memberform_form_submit($form, &$form_state) {
 
     case 'next_page':
     case 'finish_page':
+    case 'call_back':
       $storage['step']++;
       $storage['page_history'][] = $storage['current_page'];
       $storage['current_page'] = $storage['next_page'];

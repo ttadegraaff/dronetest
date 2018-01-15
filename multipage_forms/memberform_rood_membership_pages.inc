@@ -40,6 +40,7 @@ function memberform_rood_membership_settings($variable_name) {
     'no_back_pages' => array(
       'quickfinish',
       'person_details',
+      'thanks',
     ),
     'titles' => array(
       'start' => 'Contactgegevens',
@@ -130,9 +131,18 @@ function memberform_rood_membership_page_thanks_form(&$form, &$form_state) {
     '#type' => 'fieldset',
   );
 
-  $form['feedback']['thanks'] = array(
-    '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
-  );
+  switch (end($storage['page_history'])) {
+    case 'quickfinish':
+      $form['feedback']['thanks'] = array(
+        '#markup' => '<p>Welkom bij ROOD ' . check_plain($name) . '!</p><p>Je aanmelding is gelukt. We gaan je binnenkort bellen om je inschrijving af te ronden.</p>',
+      );
+      break;
+    case 'summary':
+      $form['feedback']['thanks'] = array(
+        '#markup' => '<p>Welkom bij ROOD ' . check_plain($name) . '!</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
+      );
+      break;
+  }
 }
 
 /**

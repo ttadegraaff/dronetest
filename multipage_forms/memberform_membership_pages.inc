@@ -129,9 +129,18 @@ function memberform_membership_page_thanks_form(&$form, &$form_state) {
     '#type' => 'fieldset',
   );
 
-  $form['feedback']['thanks'] = array(
-    '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
-  );
+  switch (end($storage['page_history'])) {
+    case 'quickfinish':
+      $form['feedback']['thanks'] = array(
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>Je aanmelding is gelukt. We bellen je binnenkort om je inschrijving af te ronden.</p>',
+      );
+      break;
+    case 'summary':
+      $form['feedback']['thanks'] = array(
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de SP.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
+      );
+      break;
+  }
 }
 
 /**
