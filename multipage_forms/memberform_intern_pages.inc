@@ -22,10 +22,10 @@
 /**
  * Form settings.
  *
- * Add 'no_back_pages' variable (array) with page names of pages that should not
+ * Add 'no_nav_pages' variable (array) with page names of pages that should not
  * show a back button.
  *
- * Add 'titles' array with page name to page titles.
+ * Add 'pages' array with page name to page titles.
  *
  * @param string $variable_name
  *   Name of the variable to return.
@@ -37,14 +37,17 @@ function memberform_intern_settings($variable_name) {
   $settings = array(
     'path_name' => 'aanmelden/intern',
     'form_title' => 'Aanmelden intern',
-    'no_back_pages' => array(),
-    'titles' => array(
+    'no_nav_pages' => array(),
+    'pages' => array(
       'start' => '',
-      'summary' => 'Controleer gegevens',
     ),
     'permissions' => array(
       'administer signup forms',
     ),
+    'no_nav_pages' => array(
+      'start',
+    ),
+    'final_submit_page' => 'start',
   );
   return $settings[$variable_name];
 }
@@ -102,6 +105,10 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     '#date_year_range' => '-14:-120',
     '#required' => TRUE,
     '#date_label_position' => 'within',
+    '#ajax' => array(
+      'wrapper' => 'memberform_form_wrapper',
+      'callback' => 'memberform_ajax_callback',
+    ),
   );
 
   $form['input_address'] = array(
@@ -223,8 +230,12 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $options = memberform_memberships();
 
   $age = memberform_get_age($values['start']['page_start_birth_date']);
-  if ($age < 14 || $age > 27) {
-    unset ($options['red_member']);
+  if ($age < 14) {
+    unset ($options['lid_rood']);
+    unset ($options['lid_sp']);
+  }
+  if ($age > 27) {
+    unset ($options['lid_rood']);
   }
   // When editing existing submission, limit options.
   if (!empty($storage['edit_form'])) {
@@ -255,17 +266,16 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $image_style = variable_get('memberform_gift_image_style', 'thumbnail');
   $translate = memberform_memberships();
 
-  if (!empty($memberships)) {
+  if (!empty($memberships['lid_sp']) || !empty($memberships['lid_rood'])) {
     $form['input_gift'] = array(
       '#type' => 'fieldset',
       '#title' => 'Welkomstgeschenk',
     );
-  }
-  foreach ($memberships as $membership) {
-    if (!empty($membership)) {
-      switch ($membership) {
-        case 'lid_sp':
-        case 'lid_rood':
+    foreach ($memberships as $membership) {
+      if (!empty($membership)) {
+        switch ($membership) {
+          case 'lid_sp':
+          case 'lid_rood':
           $gift_options = array();
           $gift_map = array();
           // Get gifts data.
@@ -298,6 +308,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
             ),
           );
           break;
+        }
       }
     }
   }
@@ -452,7 +463,7 @@ function memberform_intern_page_form_validate($form, &$form_state) {
 
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
-  if ($trigger != 'previous_page') {
+  if ($form_state['validate']) {
 
     switch ($storage['current_page']) {
       case 'start':
@@ -464,7 +475,7 @@ function memberform_intern_page_form_validate($form, &$form_state) {
         if (empty($values['page_start_email']) && empty($values['page_start_phone'])) {
           form_set_error('page_start_phone', 'Geef tenminste een e-mailadres of telefoonnummer op zodat we je kunnen bereiken.');
         }
-        if (isset($values['page_start_birth_date'])) {
+        if (isset($values['page_start_birth_date']) && (!empty($values['page_start_membership_type']['lid_sp']) || !empty($values['page_start_membership_type']['lid_rood']))) {
           $age = memberform_get_age($values['page_start_birth_date']);
           if ($age < 14) {
             form_set_error('page_start_birth_date', 'Je bent jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
@@ -532,9 +543,7 @@ function memberform_intern_page_form_validate($form, &$form_state) {
 /**
  * Submit function for memberform pages.
  *
- * Set $storage['next_page'] to value of next page. The text of the submit
- * button can be set to 'submit' instead of 'next' by setting
- * $storage['finish_page'] to TRUE.
+ * Set $storage['next_page'] to value of next page.
  */
 function memberform_intern_page_form_submit($form, &$form_state) {
   if (isset($form_state['form_errors'])) {

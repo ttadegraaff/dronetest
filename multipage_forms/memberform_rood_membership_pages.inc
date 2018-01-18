@@ -22,10 +22,10 @@
 /**
  * Form settings.
  *
- * Add 'no_back_pages' variable (array) with page names of pages that should not
+ * Add 'no_nav_pages' variable (array) with page names of pages that should not
  * show a back button.
  *
- * Add 'titles' array with page name to page titles.
+ * Add 'pages' array with page name to page titles.
  *
  * @param string $variable_name
  *   Name of the variable to return.
@@ -37,20 +37,23 @@ function memberform_rood_membership_settings($variable_name) {
   $settings = array(
     'path_name' => 'aanmelden/rood',
     'form_title' => 'ROOD lid worden',
-    'no_back_pages' => array(
+    'no_nav_pages' => array(
       'quickfinish',
-      'person_details',
       'thanks',
     ),
-    'titles' => array(
+    'pages' => array(
       'start' => 'Contactgegevens',
+      'quickfinish' => '',
       'person_details' => 'Persoonsgegevens',
       'red' => 'ROOD lidmaatschap',
       'address' => 'Adresgegevens',
       'contribution' => 'Persoonlijke bijdrage',
       'gift' => 'Welkomstgeschenk',
       'summary' => 'Controleer je gegevens',
+      'thanks' => 'Bedankt',
     ),
+    'final_submit_page' => 'summary',
+    'feedback_page' => 'thanks'
   );
   return $settings[$variable_name];
 }
@@ -74,6 +77,19 @@ function memberform_rood_membership_page_quickfinish_form(&$form, &$form_state) 
  */
 function memberform_rood_membership_page_red_form(&$form, &$form_state) {
   memberform_shared_page_red_form($form, $form_state);
+  $form['input'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['input']['page_red_membership'] = array(
+    '#title' => 'Rood lidmaatschap',
+    '#type' => 'radios',
+    '#options' => array(
+      'sp_and_red_member' => 'Ja, ik wil ook lid worden van de SP worden!',
+      'red_member' => 'Nee, ik wil alleen lid worden van ROOD',
+    ),
+    '#required' => TRUE,
+  );
 }
 
 /**
@@ -155,8 +171,7 @@ function memberform_rood_membership_page_form_validate($form, &$form_state) {
   $storage = &$form_state['storage'];
 
   // Process trigger.
-  $trigger = $form_state['triggering_element']['#name'];
-  if ($trigger != 'previous_page') {
+  if ($form_state['validate']) {
 
     switch ($storage['current_page']) {
       case 'person_details':
@@ -172,9 +187,7 @@ function memberform_rood_membership_page_form_validate($form, &$form_state) {
 /**
  * Submit function for memberform pages.
  *
- * Set $storage['next_page'] to value of next page. The text of the submit
- * button can be set to 'submit' instead of 'next' by setting
- * $storage['finish_page'] to TRUE.
+ * Set $storage['next_page'] to value of next page.
  */
 function memberform_rood_membership_page_form_submit($form, &$form_state) {
   $values = $form_state['values'];

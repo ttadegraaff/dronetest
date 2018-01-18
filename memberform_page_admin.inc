@@ -229,8 +229,8 @@ function memberform_view_submissions() {
       $page_settings_callback = 'memberform_' . $s->form . '_settings';
       $form_title = $page_settings_callback('form_title');
       if (!empty($s->form_page)) {
-        $form_page_titles = $page_settings_callback('titles');
-        $form_page_title = $form_page_titles[$s->form_page];
+        $pages = $page_settings_callback('pages');
+        $form_page_title = $pages[$s->form_page];
       }
     }
     $data[] = array(

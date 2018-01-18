@@ -79,6 +79,9 @@ function memberform_split_name($name) {
       $matches[$part] = ucfirst($matches[$part]);
     }
   }
+  foreach ($matches as $part => $value) {
+    $matches[$part] = trim($value);
+  }
   return $matches;
 }
 
@@ -328,7 +331,7 @@ function memberform_overview_table($form_state) {
   $storage = $form_state['storage'];
   $values = $storage['values'];
   $settings_callback = 'memberform_' . $storage['form_name'] . '_settings';
-  $page_titles = $settings_callback('titles');
+  $pages = $settings_callback('pages');
 
   $markup = '';
   $rows = array();
@@ -336,7 +339,7 @@ function memberform_overview_table($form_state) {
   // Loop through pages.
   foreach ($values as $page => $items) {
     if (in_array($page, $storage['page_history'])) {
-      $page_title = (empty($page_titles[$page])) ? '' : $page_titles[$page];
+      $page_title = (empty($pages[$page])) ? '' : $pages[$page];
       $rows_tmp[] = array(
         'data' => array(
           0 => array(

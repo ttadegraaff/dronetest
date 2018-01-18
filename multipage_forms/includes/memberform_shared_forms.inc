@@ -128,7 +128,6 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
  * Form definition for red intern page.
  */
 function memberform_shared_page_red_form(&$form, &$form_state) {
-  $storage = $form_state['storage'];
 
   $form['input'] = array(
     '#type' => 'fieldset',
@@ -457,7 +456,7 @@ function memberform_shared_validation($form, &$form_state) {
 
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
-  if ($trigger != 'previous_page') {
+  if ($form_state['validate']) {
 
     switch ($storage['current_page']) {
       case 'start':
@@ -554,9 +553,7 @@ function memberform_shared_validation($form, &$form_state) {
 /**
  * Shared submit function for memberform pages.
  *
- * Set $storage['next_page'] to value of next page. The text of the submit
- * button can be set to 'submit' instead of 'next' by setting
- * $storage['finish_page'] to TRUE.
+ * Set $storage['next_page'] to value of next page.
  */
 function memberform_shared_submit($form, &$form_state) {
   if (isset($form_state['form_errors'])) {
@@ -569,132 +566,125 @@ function memberform_shared_submit($form, &$form_state) {
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
 
-  switch ($trigger) {
-    case 'next_page':
-    case 'finish_page':
-    case 'call_back':
-      switch ($storage['current_page']) {
-        case 'start':
-          // Set form navigation.
-          if (empty($values['page_start_phone'])) {
-            $storage['next_page'] = 'person_details';
-          }
-          else {
-            $storage['next_page'] = 'quickfinish';
-          }
-          // Store hash name, value and created.
-          $split_name = memberform_split_name($values['page_start_name']);
-          $storage['values']['person_details']['page_person_details_first_name'] = $split_name['first_name'];
-          $storage['values']['person_details']['page_person_details_middle_name'] = $split_name['middle_name'];
-          $storage['values']['person_details']['page_person_details_last_name'] = $split_name['last_name'];
-          $storage['hash'] = empty($storage['hash']) ? memberform_get_hash($storage['membership_type'], $values['page_start_name']) : $storage['hash'];
-          $storage['created'] = empty($storage['created']) ? time() : $storage['created'];
-          break;
-
-        case 'quickfinish':
-          switch ($trigger) {
-            case 'call_back':
-              $storage['next_page'] = 'thanks';
-              $storage['finish_page'] = FALSE;
-              $storage['last_page'] = TRUE;
-              break;
-            case 'next_page':
-              $storage['next_page'] = 'person_details';
-              break;
-          }
-          break;
-
-        case 'person_details':
-          if (!in_array($storage['form_name'], array('tribune', 'spanning'))) {
-            $age = memberform_get_age($values['page_person_details_birth_date']);
-            if ($age < 16) {
-              $storage['membership_type'] = 'red_member';
-              $storage['next_page'] = 'address';
-            }
-            elseif ($age <= 27) {
-              $storage['next_page'] = 'red';
-            }
-            else {
-              $storage['next_page'] = 'address';
-              $storage['membership_type'] = 'sp_member';
-            }
-          }
-          else {
-            $storage['next_page'] = 'address';
-          }
-          break;
-
-        case 'red':
-          $storage['membership_type'] = $values['page_red_membership'];
-          $storage['next_page'] = 'address';
-          break;
-
-        case 'address':
-          $storage['next_page'] = 'contribution';
-          break;
-
-        case 'contribution':
-          $storage['next_page'] = 'gift';
-          // Store payment method and amount.
-          if ($values['page_contribution_choice'] === 'custom') {
-            $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_custom']);
-          }
-          else {
-            $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_choice']);
-          }
-          $storage['payment_method'] = $values['page_contribution_payment_method'];
-          $storage['bank_account'] = $values['page_contribution_iban'];
-          break;
-
-        case 'payment':
-          $storage['next_page'] = 'summary';
-          // Store payment method and amount.
-          $payment_info = explode('_', $values['page_payment_payment_method']);
-          $storage['payment_method'] = $payment_info[0];
-          $storage['payment_amount'] = memberform_clean_amount($payment_info[1]);
-          $storage['bank_account'] = $values['page_payment_iban'];
-          break;
-
-        case 'gift':
-          $storage['next_page'] = 'summary';
-          $storage['finish_page'] = TRUE;
-          break;
-
-        case 'summary':
-          $storage['next_page'] = 'thanks';
-          $storage['finish_page'] = FALSE;
-          $storage['last_page'] = TRUE;
-          break;
-      }
-
-      // Store submission.
-      $store_result = memberform_store_submission($form_state);
-
-      if (!$store_result['submission_id']) {
-        $form_state['redirect'] = array('aanmelden/fout');
+  switch ($storage['current_page']) {
+    case 'start':
+      // Set form navigation.
+      if (empty($values['page_start_phone'])) {
+        $storage['next_page'] = 'person_details';
       }
       else {
-        $storage['sid'] = $store_result['submission_id'];
+        $storage['next_page'] = 'quickfinish';
       }
+      // Store hash name, value and created.
+      $split_name = memberform_split_name($values['page_start_name']);
+      $storage['values']['person_details']['page_person_details_first_name'] = $split_name['first_name'];
+      $storage['values']['person_details']['page_person_details_middle_name'] = $split_name['middle_name'];
+      $storage['values']['person_details']['page_person_details_last_name'] = $split_name['last_name'];
+      $storage['hash'] = empty($storage['hash']) ? memberform_get_hash($storage['membership_type'], $values['page_start_name']) : $storage['hash'];
+      $storage['created'] = empty($storage['created']) ? time() : $storage['created'];
+      break;
 
-      if ($storage['current_page'] == 'summary') {
-        // Send confirmation mail when submitting summary page.
-        $fields = $store_result['fields'];
-        $mail = drupal_mail(
-          'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
-          array(
-            'form_state'      => $form_state,
-            'hash'            => $storage['hash'],
-            'membership_type' => $fields['membership_type'],
-            'format'          => SWIFTMAILER_FORMAT_HTML,
-          )
-        );
-        if (empty($mail['send'])) {
-          $form_state['next_page'] = $storage['current_page'];
-          drupal_set_message('Het is niet gelukt om de bevestigingsmail te versturen. Houdt dit probleem aan, neem dan contact op met webmaster@sp.nl', 'error');
-        }
+    case 'quickfinish':
+      switch ($trigger) {
+        case 'call_back':
+          $storage['next_page'] = 'thanks';
+          break;
+        case 'next_page':
+          $storage['next_page'] = 'person_details';
+          break;
       }
       break;
+
+    case 'person_details':
+      // Store name.
+      $middle_name = empty($values['page_person_details_middle_name']) ? '' : ' ' . $values['page_person_details_middle_name'];
+      $last_name = empty($values['page_person_details_last_name']) ? '' : ' ' . $values['page_person_details_last_name'];
+      $storage['values']['start']['page_start_name'] = $values['page_person_details_first_name'] . $middle_name . $last_name;
+      if (!in_array($storage['form_name'], array('tribune', 'spanning'))) {
+        $age = memberform_get_age($values['page_person_details_birth_date']);
+        if ($age < 16) {
+          $storage['membership_type'] = 'red_member';
+          $storage['next_page'] = 'address';
+        }
+        elseif ($age <= 27) {
+          $storage['next_page'] = 'red';
+        }
+        else {
+          $storage['next_page'] = 'address';
+          $storage['membership_type'] = 'sp_member';
+        }
+      }
+      else {
+        $storage['next_page'] = 'address';
+      }
+      break;
+
+    case 'red':
+      $storage['membership_type'] = $values['page_red_membership'];
+      $storage['next_page'] = 'address';
+      break;
+
+    case 'address':
+      $storage['next_page'] = 'contribution';
+      break;
+
+    case 'contribution':
+      $storage['next_page'] = 'gift';
+      // Store payment method and amount.
+      if ($values['page_contribution_choice'] === 'custom') {
+        $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_custom']);
+      }
+      else {
+        $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_choice']);
+      }
+      $storage['payment_method'] = $values['page_contribution_payment_method'];
+      $storage['bank_account'] = $values['page_contribution_iban'];
+      break;
+
+    case 'payment':
+      $storage['next_page'] = 'summary';
+      // Store payment method and amount.
+      $payment_info = explode('_', $values['page_payment_payment_method']);
+      $storage['payment_method'] = $payment_info[0];
+      $storage['payment_amount'] = memberform_clean_amount($payment_info[1]);
+      $storage['bank_account'] = $values['page_payment_iban'];
+      break;
+
+    case 'gift':
+      $storage['next_page'] = 'summary';
+      break;
+
+    case 'summary':
+      $storage['next_page'] = 'thanks';
+      break;
+  }
+
+  // Store submission.
+  $store_result = memberform_store_submission($form_state);
+
+  if (!$store_result['submission_id']) {
+    $form_state['redirect'] = array('aanmelden/fout');
+  }
+  else {
+    $storage['sid'] = $store_result['submission_id'];
+  }
+
+  if ($storage['current_page'] == 'summary') {
+    // Send confirmation mail when submitting summary page.
+    $fields = $store_result['fields'];
+    $mail = drupal_mail(
+      'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
+      array(
+        'form_state'      => $form_state,
+        'hash'            => $storage['hash'],
+        'membership_type' => $fields['membership_type'],
+        'format'          => SWIFTMAILER_FORMAT_HTML,
+      )
+    );
+    if (empty($mail['send'])) {
+      $form_state['next_page'] = $storage['current_page'];
+      drupal_set_message('Het is niet gelukt om de bevestigingsmail te versturen. Houdt dit probleem aan, neem dan contact op met webmaster@sp.nl', 'error');
+    }
   }
 }
 

@@ -2,3 +2,21 @@
    display: inline;
    margin-right: 0.5em;
 }
+
+.memberform-navigation .form-submit {
+  background: #ffffff;
+  border-color: #f60000;
+  color: #f60000
+}
+
+.memberform-navigation .form-submit.active {
+  background: #f60000;
+  border-color: #f60000;
+  color: #ffffff;
+}
+
+.memberform-navigation .form-submit.form-button-disabled {
+  background: #ccc;
+  border-color: #ccc;
+  color: #ffffff;
+}

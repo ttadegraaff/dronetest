@@ -22,10 +22,10 @@
 /**
  * Form settings.
  *
- * Add 'no_back_pages' variable (array) with page names of pages that should not
+ * Add 'no_nav_pages' variable (array) with page names of pages that should not
  * show a back button.
  *
- * Add 'titles' array with page name to page titles.
+ * Add 'pages' array with page name to page titles.
  *
  * @param string $variable_name
  *   Name of the variable to return.
@@ -37,20 +37,23 @@ function memberform_membership_settings($variable_name) {
   $settings = array(
     'path_name' => 'aanmelden/lid',
     'form_title' => 'Lid worden',
-    'no_back_pages' => array(
+    'no_nav_pages' => array(
       'quickfinish',
-      'person_details',
-      'thanks'
+      'thanks',
     ),
-    'titles' => array(
+    'pages' => array(
       'start' => 'Contactgegevens',
+      'quickfinish' => '',
       'person_details' => 'Persoonsgegevens',
       'red' => 'ROOD lidmaatschap',
       'address' => 'Adresgegevens',
       'contribution' => 'Persoonlijke bijdrage',
       'gift' => 'Welkomstgeschenk',
       'summary' => 'Controleer uw gegevens',
+      'thanks' => 'Bedankt',
     ),
+    'final_submit_page' => 'summary',
+    'feedback_page' => 'thanks'
   );
   return $settings[$variable_name];
 }
@@ -148,14 +151,19 @@ function memberform_membership_page_thanks_form(&$form, &$form_state) {
  */
 function memberform_membership_page_form_validate($form, &$form_state) {
   memberform_shared_validation($form, $form_state);
+
+  $values = &$form_state['values'];
+  $storage = &$form_state['storage'];
+
+  // Process trigger.
+  if ($form_state['validate']) {
+  }
 }
 
 /**
  * Submit function for memberform pages.
  *
- * Set $storage['next_page'] to value of next page. The text of the submit
- * button can be set to 'submit' instead of 'next' by setting
- * $storage['finish_page'] to TRUE.
+ * Set $storage['next_page'] to value of next page.
  */
 function memberform_membership_page_form_submit($form, &$form_state) {
   $values = $form_state['values'];

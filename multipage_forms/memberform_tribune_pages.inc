@@ -22,10 +22,10 @@
 /**
  * Form settings.
  *
- * Add 'no_back_pages' variable (array) with page names of pages that should not
+ * Add 'no_nav_pages' variable (array) with page names of pages that should not
  * show a back button.
  *
- * Add 'titles' array with page name to page titles.
+ * Add 'pages' array with page name to page titles.
  *
  * @param string $variable_name
  *   Name of the variable to return.
@@ -37,17 +37,20 @@ function memberform_tribune_settings($variable_name) {
   $settings = array(
     'path_name' => 'aanmelden/tribune',
     'form_title' => 'Aanmelden tribune',
-    'no_back_pages' => array(
+    'no_nav_pages' => array(
       'quickfinish',
-      'person_details',
+      'thanks',
     ),
-    'titles' => array(
+    'pages' => array(
       'start' => 'Contactgegevens',
       'person_details' => 'Persoonsgegevens',
       'address' => 'Adresgegevens',
       'payment' => 'Betalingsgegevens',
       'summary' => 'Controleer uw gegevens',
+      'thanks' => 'Bedankt',
     ),
+    'final_submit_page' => 'summary',
+    'feedback_page' => 'thanks'
   );
   return $settings[$variable_name];
 }
@@ -143,21 +146,14 @@ function memberform_tribune_page_form_validate($form, &$form_state) {
 
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
-  if ($trigger != 'previous_page') {
-
-    switch ($storage['current_page']) {
-      case 'test':
-        break;
-    }
+  if ($form_state['validate']) {
   }
 }
 
 /**
  * Submit function for memberform pages.
  *
- * Set $storage['next_page'] to value of next page. The text of the submit
- * button can be set to 'submit' instead of 'next' by setting
- * $storage['finish_page'] to TRUE.
+ * Set $storage['next_page'] to value of next page.
  */
 function memberform_tribune_page_form_submit($form, &$form_state) {
   $values = $form_state['values'];

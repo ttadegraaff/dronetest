@@ -14,22 +14,29 @@ function memberform_form($form, &$form_state, $form_name) {
   $sid = empty($form_state['storage']['sid']) ? NULL : $form_state['storage']['sid'];
   $storage = memberform_get_storage($sid, $form_name);
 
-  // Store form name.
-  $storage['form_name'] = $form_name;
-
-  // Set default page.
-  if (!isset($storage['current_page'])) {
-    $storage['current_page'] = 'start';
-    $storage['step'] = 1;
-  }
-
   // Store storage data in form.
   $form_state['storage'] = $storage;
   $storage = &$form_state['storage'];
 
-  if ($form_name === 'intern') {
-    $storage['finish_page'] = TRUE;
+  // Store form name.
+  $storage['form_name'] = $form_name;
+
+  // Store settings.
+  $settings_callback = 'memberform_' . $form_name . '_settings';
+  $storage['pages'] = $settings_callback('pages');
+  $storage['no_nav_pages'] = $settings_callback('no_nav_pages');
+  $storage['final_submit_page'] = $settings_callback('final_submit_page');
+  $storage['feedback_page'] = $settings_callback('feedback_page');
+
+
+  // Set default page.
+  if (empty($storage['current_page'])) {
+    $storage['current_page'] = 'start';
+    $storage['page_history'][] = 'start';
   }
+
+  $form_state['validate'] = TRUE;
+
 
   // Create form based on form page.
   $form = array(
@@ -61,18 +68,37 @@ function memberform_form($form, &$form_state, $form_name) {
     );
   }
 
-  /*
-   * Add form title and step.
-   * $storage['step']
-   * memberform_settings('titles')
-   * $storage['current_page']
-   */
-  $settings_callback = 'memberform_' . $form_name . '_settings';
-  $titles = $settings_callback('titles');
-  if (!empty($titles[$storage['current_page']])) {
+  // Add form title.
+  if (!empty($storage['pages'][$storage['current_page']])) {
     $form['progress'] = array(
-      '#markup' => '<h3>' . $titles[$storage['current_page']] . '</h3>',
+      '#markup' => '<h3>' . $storage['pages'][$storage['current_page']] . '</h3>',
     );
+  }
+
+  // Add form navigation.
+  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['pages']) && count($storage['page_history']) > 1) {
+    $form['form_navigation'] = array(
+      '#type' => 'fieldset',
+      '#attributes' => array('class' => array('memberform-navigation')),
+    );
+    $count = 0;
+    foreach($storage['pages'] as $form_page => $title) {
+      if (!in_array($form_page, $storage['no_nav_pages'])) {
+        $count++;
+        $storage['navigation_order'][$count] = $form_page;
+        $form['form_navigation']['go_to_' . $form_page] = array(
+          '#type' => 'submit',
+          '#value' => $title,
+          '#name' => 'go_to_' . $form_page,
+          '#ajax' => array(
+            'wrapper' => 'memberform_form_wrapper',
+            'callback' => 'memberform_ajax_callback',
+          ),
+          '#disabled' => !(in_array($form_page, $storage['page_history']) || $form_page === $storage['current_page']),
+          '#attributes' => ($form_page === $storage['current_page']) ? array('class' => array('active')) : array(),
+        );
+      }
+    }
   }
 
   // Get pages forms.
@@ -89,35 +115,29 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Add action buttons.
-  if ($storage['step'] > 1) {
-    $settings_callback = 'memberform_' . $form_name . '_settings';
-    $no_back_pages = $settings_callback('no_back_pages');
-    if (!in_array($storage['current_page'], $no_back_pages)) {
-      $form['action']['previous_page'] = array(
-        '#type' => 'submit',
-        '#value' => 'Terug',
-        '#name' => 'previous_page',
-        '#ajax' => array(
-          'wrapper' => 'memberform_form_wrapper',
-          'callback' => 'memberform_ajax_callback',
-        ),
-      );
-    }
+  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['previous_page']) && !in_array($storage['previous_page'], $storage['no_nav_pages'])) {
+    $form['action']['previous_page'] = array(
+      '#type' => 'submit',
+      '#value' => 'Terug',
+      '#name' => 'previous_page',
+      '#ajax' => array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+      ),
+    );
   }
 
-  if (empty($storage['finish_page'])) {
+  if ($storage['current_page'] !== $storage['final_submit_page']) {
     $next_button_text = 'Verder';
-    $next_button_name = 'next_page';
   }
   else {
     $next_button_text = 'Insturen';
-    $next_button_name = 'finish_page';
   }
-  if (empty($storage['last_page']) && empty($form['action']['next_page'])) {
+  if ($storage['current_page'] !== $storage['feedback_page'] && empty($form['action']['next_page'])) {
     $form['action']['next_page'] = array(
       '#type' => 'submit',
       '#value' => $next_button_text,
-      '#name' => $next_button_name,
+      '#name' => 'next_page',
       '#ajax' => array(
         'wrapper' => 'memberform_form_wrapper',
         'callback' => 'memberform_ajax_callback',
@@ -129,7 +149,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
 // Clear form history when on final page.
-if (!empty($storage['last_page'])) {
+if ($storage['current_page'] === $storage['feedback_page']) {
   memberform_clear_form($form_state);
 }
 
@@ -145,7 +165,11 @@ function memberform_form_pre_custom_validate($form, &$form_state) {
 
   // Implement required fields validation.
   $trigger = $form_state['triggering_element']['#name'];
-  if ($trigger !== 'previous_page') {
+  preg_match('/^go_to_([a-z_]+)$/', $trigger, $matches);
+  if ($storage['current_page'] == end($storage['page_history']) && ($trigger == 'previous_page' || !empty($matches[1]))) {
+    $form_state['validate'] = FALSE;
+  }
+  if ($form_state['validate']) {
     foreach ($values as $key => $value) {
       if (isset($storage['required_fields'][$key])) {
         if (empty($value)) {
@@ -171,13 +195,20 @@ function memberform_form_post_custom_validate($form, &$form_state) {
   }
 
   // Make sure form data is stored on ajax callback.
-  if (!empty($storage['sid'])) {
-    // Store data.
-    memberform_store_form_data($storage);
-
-    // Store submission id in session.
-    $_SESSION['memberform'][$storage['form_name']]['sid'] = $storage['sid'];
+  if (empty($storage['sid'])) {
+    $sid = db_insert('memberform_submissions')
+    ->fields(array(
+      'created' => REQUEST_TIME,
+    ))
+    ->execute();
+    $storage['sid'] = $sid;
   }
+
+  // Store data.
+  memberform_store_form_data($storage);
+
+  // Store submission id in session.
+  $_SESSION['memberform'][$storage['form_name']]['sid'] = $storage['sid'];
 
   $form_state['form_errors'] = form_get_errors();
   memberform_remove_errors($form_state);
@@ -206,25 +237,56 @@ function memberform_form_submit($form, &$form_state) {
     }
   }
 
+  $current_page_history_key = array_search($storage['current_page'], $storage['page_history']);
   // Process previous, next page.
   $trigger = $form_state['triggering_element']['#name'];
 
   switch ($trigger) {
     case 'previous_page':
-      $storage['step']--;
-      $storage['current_page'] = array_pop($storage['page_history']);
+      $storage['current_page'] = $storage['previous_page'];
       unset($storage['next_page']);
-      unset($storage['finish_page']);
       break;
 
     case 'next_page':
-    case 'finish_page':
-    case 'call_back':
-      $storage['step']++;
-      $storage['page_history'][] = $storage['current_page'];
-      $storage['current_page'] = $storage['next_page'];
+      if (array_search($storage['current_page'], $storage['page_history']) !== FALSE) {
+        $current_page_history_key = array_search($storage['current_page'], $storage['page_history']);
+      }
+      else {
+        $current_page_history_key = FALSE;
+      }
+      $next_page_history_key = empty($storage['page_history'][$current_page_history_key + 1]) ? false : $current_page_history_key + 1;
+      if ($next_page_history_key) {
+        if ($storage['next_page'] === $storage['page_history'][$next_page_history_key]) {
+          $storage['current_page'] = $storage['next_page'];
+        }
+        elseif (in_array($storage['next_page'], $storage['no_nav_pages'])) {
+          $storage['current_page'] = $storage['page_history'][$next_page_history_key];
+        }
+        else {
+          array_splice($storage['page_history'], $current_page_history_key + 1);
+          $storage['current_page'] = $storage['next_page'];
+        }
+      }
+      else {
+        $storage['current_page'] = $storage['next_page'];
+      }
       break;
   }
+
+  // Process form navigation.
+  preg_match('/^go_to_([a-z_]+)$/', $trigger, $matches);
+  if (!empty($matches[1])) {
+    $storage['current_page'] = $matches[1];
+    unset($storage['next_page']);
+  }
+
+  // Add current page to history.
+  if (array_search($storage['current_page'], $storage['page_history']) === FALSE && !in_array($storage['current_page'], $storage['no_nav_pages'])) {
+    $storage['page_history'][] = $storage['current_page'];
+  }
+
+  // Set previous_page.
+  $storage['previous_page'] = $storage['page_history'][array_search($storage['current_page'], $storage['page_history']) - 1];
 
   // Store form data in database.
   memberform_store_form_data($storage);
