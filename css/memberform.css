@@ -20,3 +20,35 @@
   border-color: #ccc;
   color: #ffffff;
 }
+
+#memberform_form_wrapper div.form-type-radio {
+  display: inline-block;
+}
+
+#memberform_form_wrapper input[type="radio"] {
+  display: none;
+}
+
+#memberform_form_wrapper label.option {
+  padding: 10px;
+  margin-bottom: 0;
+  margin-right: 5px;
+  background-color: #ffffff;
+  border: 1px solid #f60000;
+  color: #f60000;
+  cursor: pointer;
+  overflow-wrap: break-word;
+}
+
+#memberform_form_wrapper label.option img {
+  float: left;
+}
+
+#memberform_form_wrapper label.option span {
+  vertical-align: top;
+}
+
+#memberform_form_wrapper input[type="radio"]:checked+label {
+  background-color:#f60000;
+  color: #ffffff;
+}

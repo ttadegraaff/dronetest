@@ -370,7 +370,7 @@ function memberform_overview_table($form_state) {
               case 'select':
               case 'radios':
                 $display = $form_element['#options'][$value];
-                $rows_tmp[] = array($title, $display);
+                $rows_tmp[] = array($title, preg_replace('/<img[^>]+\>/i', '', $display));
                 break;
             }
           }

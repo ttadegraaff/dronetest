@@ -264,6 +264,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('contribution-form-element')),
   );
 
   $form['input']['page_contribution_choice'] = array(
@@ -409,20 +410,11 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
     $select = "SELECT * FROM {memberform_gifts} WHERE membership_type = :membership AND show_website = 1 ORDER BY position";
     $gifts = db_query($select, array(':membership' => $membership));
     foreach ($gifts as $key => $gift) {
-      // Create gift mapping.
-      $gift_map[$gift->id] = $gift;
+      $image = file_load($gift->image);
+      $image_styled = empty($image) ? '' : theme('image_style', array('style_name' => $image_style, 'path' => $image->uri));
       // Create gift options for select list.
-      $gift_options[$gift->id] = $gift->name;
+      $gift_options[$gift->id] = $image_styled . '<span>' . $gift->name . '</span>';
     }
-    // Default selected gift.
-    $selected_gift_id = empty($storage['values']['gift']['page_gift_select_' . $membership]) ? key($gift_options) : $storage['values']['gift']['page_gift_select_' . $membership];
-    $selected_gift = $gift_map[$selected_gift_id];
-    // Create image code.
-    $image = file_load($selected_gift->image);
-    $image_styled = empty($image) ? '' : theme('image_style', array('style_name' => $image_style, 'path' => $image->uri));
-    $form['input']['page_gift_image_' . $selected_gift->id] = array(
-      '#markup' => $image_styled,
-    );
     // Show gift selection form.
     $form['input']['page_gift_select_' . $membership] = array(
       '#title' => 'Welkomstgeschenk ' . $translate[$membership],
