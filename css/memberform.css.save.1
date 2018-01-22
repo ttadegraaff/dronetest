@@ -19,7 +19,7 @@
     background: #fff!important;
     padding: 0 1rem 3rem 1rem!important;
 }
-.page-aanmelden form .form_header img {
+.page-aanmelden form img {
     max-width: calc(100% + 2rem);
     margin: 0 -1rem 1rem -1rem;
 }
@@ -28,14 +28,9 @@
     font-size: 1.5rem;
 }
 .page-aanmelden form h3,
-.page-aanmelden form .memberform,
-.page-aanmelden form table,
-.page-aanmelden form p {
+.page-aanmelden form .memberform {
     max-width: 480px; /* 50% of maxwidth 960px */
     margin: 0 auto;
-}
-.page-aanmelden form table {
-    text-align: left;
 }
 .page-aanmelden form label {
     display: block!important;
@@ -46,12 +41,6 @@
 }
 .page-aanmelden form label.option {
     display: inline-block!important;
-}
-.page-aanmelden input[type="submit"]{
-    padding: 1rem 2rem;
-    margin-right: 1rem;
-    margin-top: 1rem;
-    min-width: 150px;
 }
 .page-aanmelden .form-select {
     padding: .5rem;
@@ -66,7 +55,7 @@
     margin-right: .5rem;
 }
 .page-aanmelden .form-item {
-    padding: 1rem 0 0 0;
+    padding: .5rem 0;
 }
 .page-aanmelden .form-item .form-text {
     max-width: 100%;
@@ -88,7 +77,6 @@
 
 .page-aanmelden .messages {
     border: 1px solid;
-    padding: .5rem 1rem;
 }
 .page-aanmelden .error {
     background-color: #f2dede;
@@ -111,66 +99,15 @@
     color: #8a6d3b;
 }
 
-
-/* EURO SIGN PREFIX CONTRIBUTIONS */
-.page-aanmelden .form-item-page-contribution-custom {
-    position: relative; /* set parent relative */
-}
 span.field-prefix {
-    position: absolute; /* absolute on parent */
+    position: absolute;
     z-index: 999;
     padding: 16px 0 16px 16px;
 }
-.page-aanmelden .form-item-page-contribution-custom input {
-    padding-left: 32px!important; /* extra padding for prefix */
-}
 
-.memberform-navigation .form-submit {
-  background: #ffffff;
-  border-color: #f60000;
-  color: #f60000
-}
 
-.memberform-navigation .form-submit.active {
-  background: #f60000;
-  border-color: #f60000;
-  color: #ffffff;
-}
-
-.memberform-navigation .form-submit.form-button-disabled {
-  background: #ccc;
-  border-color: #ccc;
-  color: #ffffff;
-}
-
-#memberform_form_wrapper div.form-type-radio {
-  display: inline-block;
-}
-
-#memberform_form_wrapper input[type="radio"] {
-  display: none;
-}
-
-#memberform_form_wrapper label.option {
-  padding: 10px;
-  margin-bottom: 0;
-  margin-right: 5px;
-  background-color: #ffffff;
-  border: 1px solid #f60000;
-  color: #f60000;
-  cursor: pointer;
-  overflow-wrap: break-word;
-}
-
-#memberform_form_wrapper label.option img {
-  float: left;
-}
-
-#memberform_form_wrapper label.option span {
-  vertical-align: top;
-}
-
-#memberform_form_wrapper input[type="radio"]:checked+label {
-  background-color:#f60000;
-  color: #ffffff;
+/* ?? */
+.field-prefix div.inline {
+    display: inline;
+    margin-right: 0.5em;
 }

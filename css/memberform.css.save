@@ -1,0 +1,57 @@
+/* MEMBERFORM */
+/* remove important after disabling css in main theme */
+.page-aanmelden .page {
+    background: #f1f1f1;
+}
+.page-aanmelden .primary-content {
+    padding: 3rem 0;
+}
+.page-aanmelden header h1 {
+    background: #fff;
+    text-align: left!important;
+    color: #222!important;
+    padding: 1rem!important;
+}
+.page-aanmelden form {
+    background: #fff!important;
+    padding: 0 1rem 3rem 1rem!important;
+}
+.page-aanmelden form img {
+    max-width: calc(100% + 2rem);
+    margin: 0 -1rem 1rem -1rem;
+}
+.page-aanmelden form h3 {
+    margin-top: 1rem;
+}
+.page-aanmelden form h3,
+.page-aanmelden form .memberform {
+    max-width: 480px; /* 50% of maxwidth 960px */
+    margin: 0 auto;
+}
+.page-aanmelden form label {
+    font-size: 1.125rem;
+    margin-bottom: .5rem;
+    font-weight: normal;
+    font-family: "HelveticaNeueLTStd-BdCn", "Helvetica Neue", Helvetica, "Roboto Sans", "Segoe UI", Arial, "Lucida Grande", sans-serif;
+    letter-spacing: .3px;
+}
+
+.page-aanmelden .form-item .form-text {
+    max-width: 100%;
+    width: 100%;
+    padding: 1rem;
+    background: #fafafa;
+    border: 1px solid #ddd;
+    color: #333;
+    font-family: "HelveticaNeueLTStd-Md", "Helvetica Neue", Helvetica, "Roboto Sans", "Segoe UI", Arial, "Lucida Grande", sans-serif;
+    box-sizing: border-box;
+}
+.form-item {
+    padding: .5rem 0;
+}
+
+/* ?? */
+.field-prefix div.inline {
+    display: inline;
+    margin-right: 0.5em;
+}
