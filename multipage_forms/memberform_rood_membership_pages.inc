@@ -79,6 +79,7 @@ function memberform_rood_membership_page_red_form(&$form, &$form_state) {
   memberform_shared_page_red_form($form, $form_state);
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   $form['input']['page_red_membership'] = array(
@@ -145,6 +146,7 @@ function memberform_rood_membership_page_thanks_form(&$form, &$form_state) {
 
   $form['feedback'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-feedback')),
   );
 
   switch (end($storage['page_history'])) {

@@ -146,6 +146,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
   if (!empty($form['action'])) {
     $form['action']['#type'] = 'fieldset';
+    $form['action']['#attributes'] = array('class' => array('memberform-action'));
   }
 
 // Clear form history when on final page.

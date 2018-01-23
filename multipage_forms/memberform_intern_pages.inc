@@ -69,6 +69,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $form['input_person_details'] = array(
     '#type' => 'fieldset',
     '#title' => 'Persoonsgegevens',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   $form['input_person_details']['page_start_first_name'] = array(
@@ -114,6 +115,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $form['input_address'] = array(
     '#type' => 'fieldset',
     '#title' => 'Adresgegevens',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   include_once DRUPAL_ROOT . '/includes/locale.inc';
@@ -225,6 +227,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $form['input_membership'] = array(
     '#type' => 'fieldset',
     '#title' => 'Lidmaatschapsgegevens',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   $options = memberform_memberships();
@@ -270,6 +273,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     $form['input_gift'] = array(
       '#type' => 'fieldset',
       '#title' => 'Welkomstgeschenk',
+      '#attributes' => array('class' => array('memberform-input')),
     );
     foreach ($memberships as $membership) {
       if (!empty($membership)) {
@@ -319,7 +323,8 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   ) {
     $form['input_contribution'] = array(
       '#type' => 'fieldset',
-      '#title' => 'Betalingsgegevens'
+      '#title' => 'Betalingsgegevens',
+      '#attributes' => array('class' => array('memberform-input')),
     );
 
     $form['input_contribution']['page_start_contribution_choice'] = array(

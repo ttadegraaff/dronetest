@@ -10,6 +10,7 @@
 function memberform_shared_page_start_form(&$form, &$form_state) {
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   $form['input']['page_start_name'] = array(
@@ -60,6 +61,7 @@ function memberform_shared_page_quickfinish_form(&$form, &$form_state) {
 function memberform_shared_page_call_back_feedback(&$form, &$form_state) {
   $form['feedback'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-feedback')),
   );
 
   $form['feedback']['call_back_feedback'] = array(
@@ -92,6 +94,7 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   $form['input']['page_person_details_first_name'] = array(
@@ -131,6 +134,7 @@ function memberform_shared_page_red_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   $form['input']['page_red_membership'] = array(
@@ -152,6 +156,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   include_once DRUPAL_ROOT . '/includes/locale.inc';
@@ -264,7 +269,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
-    '#attributes' => array('class' => array('contribution-form-element')),
+    '#attributes' => array('class' => array('contribution-form-element', 'memberform-input')),
   );
 
   $form['input']['page_contribution_choice'] = array(
@@ -354,6 +359,7 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   $form['input']['page_payment_payment_method'] = array(
@@ -401,6 +407,7 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-input')),
   );
 
   foreach ($memberships as $membership) {

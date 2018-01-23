@@ -119,6 +119,7 @@ function memberform_tribune_page_thanks_form(&$form, &$form_state) {
 
   $form['feedback'] = array(
     '#type' => 'fieldset',
+    '#attributes' => array('class' => array('memberform-feedback')),
   );
 
   switch (end($storage['page_history'])) {
