@@ -37,7 +37,6 @@ function memberform_form($form, &$form_state, $form_name) {
 
   $form_state['validate'] = TRUE;
 
-
   // Create form based on form page.
   $form = array(
     '#validate' => array(
@@ -57,6 +56,7 @@ function memberform_form($form, &$form_state, $form_name) {
         drupal_get_path('module', 'memberform') . '/css/memberform.css',
       ),
     ),
+    '#attributes' => array('class' => array('memberform_' . $form_name)),
   );
 
   // Add header image.
@@ -68,13 +68,6 @@ function memberform_form($form, &$form_state, $form_name) {
     );
   }
 
-  // Add form title.
-  if (!empty($storage['pages'][$storage['current_page']])) {
-    $form['progress'] = array(
-      '#markup' => '<h3>' . $storage['pages'][$storage['current_page']] . '</h3>',
-    );
-  }
-
   // Add form navigation.
   if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['pages']) && count($storage['page_history']) > 1) {
     $form['form_navigation'] = array(
@@ -82,13 +75,25 @@ function memberform_form($form, &$form_state, $form_name) {
       '#attributes' => array('class' => array('memberform-navigation')),
     );
     $count = 0;
+    $page_names_short = array(
+      'start' => 'Contactgegevens',
+      'quickfinish' => '',
+      'person_details' => 'Persoonsgegevens',
+      'red' => 'ROOD',
+      'address' => 'Adres',
+      'payment' => 'Betaling',
+      'contribution' => 'Bijdrage',
+      'gift' => 'Geschenk',
+      'summary' => 'Controle',
+    );
     foreach($storage['pages'] as $form_page => $title) {
       if (!in_array($form_page, $storage['no_nav_pages'])) {
+        $title_short = $page_names_short[$form_page];
         $count++;
         $storage['navigation_order'][$count] = $form_page;
         $form['form_navigation']['go_to_' . $form_page] = array(
           '#type' => 'submit',
-          '#value' => $title,
+          '#value' => $title_short,
           '#name' => 'go_to_' . $form_page,
           '#ajax' => array(
             'wrapper' => 'memberform_form_wrapper',
@@ -99,6 +104,13 @@ function memberform_form($form, &$form_state, $form_name) {
         );
       }
     }
+  }
+
+  // Add form title.
+  if (!empty($storage['pages'][$storage['current_page']])) {
+    $form['progress'] = array(
+      '#markup' => '<h3>' . $storage['pages'][$storage['current_page']] . '</h3>',
+    );
   }
 
   // Get pages forms.

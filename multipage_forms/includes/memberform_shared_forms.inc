@@ -10,23 +10,28 @@
 function memberform_shared_page_start_form(&$form, &$form_state) {
   $form['input'] = array(
     '#type' => 'fieldset',
-    '#attributes' => array('class' => array('memberform-input')),
+    '#attributes' => array(
+      'class' => array('memberform-input'),
+    ),
   );
 
   $form['input']['page_start_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Naam',
     '#required' => TRUE,
+    '#attributes' => array('placeholder' => 'Voornaam Achternaam'),
   );
 
   $form['input']['page_start_email'] = array(
-    '#type' => 'textfield',
+    '#type' => 'emailfield',
     '#title' => 'E-mailadres',
+    '#attributes' => array('placeholder' => 'naam@domein.nl'),
   );
 
   $form['input']['page_start_phone'] = array(
-    '#type' => 'textfield',
+    '#type' => 'telfield',
     '#title' => 'Telefoonnummer',
+    '#attributes' => array('placeholder' => '0612345678'),
   );
 }
 
@@ -119,9 +124,9 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
 
   $form['input']['page_person_details_birth_date'] = array(
     '#title'           => 'Geboortedatum',
-    '#type'            => 'date_select',
+    '#type'            => 'date_popup',
     '#date_format'     => 'd-m-Y',
-    '#date_year_range' => '-14:-120',
+    '#date_year_range' => '-120:-14',
     '#required' => TRUE,
     '#date_label_position' => 'within',
   );
@@ -137,8 +142,12 @@ function memberform_shared_page_red_form(&$form, &$form_state) {
     '#attributes' => array('class' => array('memberform-input')),
   );
 
+  $form['input']['page_red_intro'] = array(
+    '#markup' => '<p><strong>ROOD is de actiefste jongerenorganisatie van Nederland</strong></p><p>Samen met jongeren gaan we de strijd aan voor een betere wereld. We zijn niet bang om onrecht, discriminatie en ongelijkheid te bestrijden waar dat moet gebeuren.</p>',
+  );
+
   $form['input']['page_red_membership'] = array(
-    '#title' => 'Rood lidmaatschap',
+    '#title' => 'Rood lidmaatschap (gratis)',
     '#type' => 'radios',
     '#options' => array(
       'sp_and_red_member' => 'Ja, ik wil ook lid worden van ROOD, Jong in de SP!',
@@ -186,6 +195,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
         'wrapper' => 'memberform_form_wrapper',
         'callback' => 'memberform_ajax_callback',
       ),
+      '#attributes' => array('placeholder' => '1234AB'),
     );
     $form['input']['page_address_house_number'] = array(
       '#title'         => 'Huisnummer',
@@ -239,6 +249,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
       '#title'         => 'Straat',
       '#type'          => 'textfield',
       '#required'      => TRUE,
+      '#attributes' => array('placeholder' => 'Straat'),
     );
     $form['input']['page_address_house_number'] = array(
       '#title'         => 'Huisnummer',
@@ -279,6 +290,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
       '50' => '50,-',
       '20' => '20,-',
       '10' => '10,-',
+      '5' => '5,-',
       'custom' => 'Anders',
     ),
     '#required' => TRUE,
@@ -407,7 +419,7 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
 
   $form['input'] = array(
     '#type' => 'fieldset',
-    '#attributes' => array('class' => array('memberform-input')),
+    '#attributes' => array('class' => array('memberform-input', 'memberform-input-gift')),
   );
 
   foreach ($memberships as $membership) {
@@ -415,17 +427,38 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
     $gift_map = array();
     // Get gifts data.
     $select = "SELECT * FROM {memberform_gifts} WHERE membership_type = :membership AND show_website = 1 ORDER BY position";
-    $gifts = db_query($select, array(':membership' => $membership));
+    $gifts = db_query($select, array(':membership' => $membership))->fetchAll();
+    $form_type = (count($gifts) > 4 ) ? 'select' : 'radios';
+
     foreach ($gifts as $key => $gift) {
       $image = file_load($gift->image);
+      $gift_map[$gift->id] = $gift;
       $image_styled = empty($image) ? '' : theme('image_style', array('style_name' => $image_style, 'path' => $image->uri));
       // Create gift options for select list.
-      $gift_options[$gift->id] = $image_styled . '<span>' . $gift->name . '</span>';
+      if ($form_type === 'select') {
+        $gift_options[$gift->id] = $gift->name;
+      }
+      else {
+        $gift_options[$gift->id] = $image_styled . '<span>' . $gift->name . '</span>';
+      }
     }
+
+    $selected_gift_id = empty($storage['values']['gift']['page_gift_select_' . $membership]) ? key($gift_options) : $storage['values']['gift']['page_gift_select_' . $membership];
+    $selected_gift = $gift_map[$selected_gift_id];
+
+    if ($form_type === 'select') {
+      // Create image code.
+      $image = file_load($selected_gift->image);
+      $image_styled = empty($image) ? '' : theme('image_style', array('style_name' => $image_style, 'path' => $image->uri));
+      $form['input']['page_gift_image_' . $selected_gift->id] = array(
+        '#markup' => $image_styled,
+      );
+    }
+
     // Show gift selection form.
     $form['input']['page_gift_select_' . $membership] = array(
       '#title' => 'Welkomstgeschenk ' . $translate[$membership],
-      '#type' => (count($gift_options) > 4 ) ? 'select' : 'radios',
+      '#type' => $form_type,
       '#options' => $gift_options,
       '#default_value' => $selected_gift_id,
       '#ajax' => array(
@@ -513,6 +546,9 @@ function memberform_shared_validation($form, &$form_state) {
             if ($amount > 999999) {
               form_set_error('page_contribution_custom', 'Vul een kleiner bedrag in.');
             }
+            if ($amount < 5) {
+              form_set_error('page_contribution_custom', 'De minimumbijdrage is 5,- euro.');
+            }
             $amount = str_replace('.', ',', $amount);
             $values['page_contribution_custom'] = $amount;
           }
@@ -532,7 +568,7 @@ function memberform_shared_validation($form, &$form_state) {
         break;
 
       case 'payment':
-        if ($values['page_payment_payment_method'] === 'auto') {
+        if (strpos($values['page_payment_payment_method'], 'auto') === 0) {
           $iban = strtoupper($values['page_payment_iban']);
           $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
           if ($storage['values']['address']['page_address_country'] === 'NL') {
@@ -668,7 +704,7 @@ function memberform_shared_submit($form, &$form_state) {
     $storage['sid'] = $store_result['submission_id'];
   }
 
-  if ($storage['current_page'] == 'summary') {
+  if ($storage['current_page'] == 'summary' && !empty($fields['email'])) {
     // Send confirmation mail when submitting summary page.
     $fields = $store_result['fields'];
     $mail = drupal_mail(
