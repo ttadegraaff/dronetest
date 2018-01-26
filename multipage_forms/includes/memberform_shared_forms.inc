@@ -124,9 +124,9 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
 
   $form['input']['page_person_details_birth_date'] = array(
     '#title'           => 'Geboortedatum',
-    '#type'            => 'date_popup',
+    '#type'            => 'date_select',
     '#date_format'     => 'd-m-Y',
-    '#date_year_range' => '-120:-14',
+    '#date_year_range' => '-14:-120',
     '#required' => TRUE,
     '#date_label_position' => 'within',
   );
@@ -235,11 +235,11 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
     if (!empty($storage['values']['address']['page_address_postal_code'])) {
       if (!empty($address_data->adres)) {
         $form['input']['page_address_street']['#default_value'] = $address_data->adres;
-        $form['input']['page_address_street']['#value'] = $address_data->adres;
+        //$form['input']['page_address_street']['#value'] = $address_data->adres;
       };
       if (!empty($address_data->woonplaats)) {
         $form['input']['page_address_locality']['#default_value'] = $address_data->woonplaats;
-        $form['input']['page_address_locality']['#value'] = $address_data->woonplaats;
+        //$form['input']['page_address_locality']['#value'] = $address_data->woonplaats;
       };
     }
   }
@@ -443,7 +443,7 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
       }
     }
 
-    $selected_gift_id = empty($storage['values']['gift']['page_gift_select_' . $membership]) ? key($gift_options) : $storage['values']['gift']['page_gift_select_' . $membership];
+    $selected_gift_id = empty($storage['values']['gift']['page_gift_select_' . $membership]) ? '' : $storage['values']['gift']['page_gift_select_' . $membership];
     $selected_gift = $gift_map[$selected_gift_id];
 
     if ($form_type === 'select') {
@@ -459,6 +459,7 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
     $form['input']['page_gift_select_' . $membership] = array(
       '#title' => 'Welkomstgeschenk ' . $translate[$membership],
       '#type' => $form_type,
+      '#required' => TRUE,
       '#options' => $gift_options,
       '#default_value' => $selected_gift_id,
       '#ajax' => array(
@@ -466,6 +467,10 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
         'callback' => 'memberform_ajax_callback',
       ),
     );
+
+    if ($form_type === 'select') {
+      $form['input']['page_gift_select_' . $membership]['#empty_option'] = '- Maak een keuze -';
+    }
   }
 }
 
