@@ -584,6 +584,9 @@ function memberform_shared_validation($form, &$form_state) {
             }
           }
         }
+        if (strpos($values['page_payment_payment_method'], 'accept') === 0) {
+          unset($values['page_payment_iban']);
+        }
         break;
     }
   }
