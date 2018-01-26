@@ -303,7 +303,8 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
   if ($storage['values']['contribution']['page_contribution_choice'] === 'custom') {
     $form['input']['page_contribution_custom'] = array(
       '#title' => 'Kies een bedrag (minimaal 5 euro)',
-      '#type' => 'textfield',
+      '#type' => 'numberfield',
+      '#step' => 'any',
       '#required' => TRUE,
       '#field_prefix' => '<div class="inline">€</div>',
     );
@@ -543,7 +544,6 @@ function memberform_shared_validation($form, &$form_state) {
       case 'contribution':
         if ($values['page_contribution_choice'] === 'custom') {
           $amount = $values['page_contribution_custom'];
-          $amount = memberform_clean_amount($amount);
           if ($amount === FALSE) {
             form_set_error('page_contribution_custom', 'Vul een getal in.');
           }
@@ -554,7 +554,6 @@ function memberform_shared_validation($form, &$form_state) {
             if ($amount < 5) {
               form_set_error('page_contribution_custom', 'De minimumbijdrage is 5,- euro.');
             }
-            $amount = str_replace('.', ',', $amount);
             $values['page_contribution_custom'] = $amount;
           }
         }
@@ -672,10 +671,10 @@ function memberform_shared_submit($form, &$form_state) {
       $storage['next_page'] = 'gift';
       // Store payment method and amount.
       if ($values['page_contribution_choice'] === 'custom') {
-        $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_custom']);
+        $storage['payment_amount'] = $values['page_contribution_custom'];
       }
       else {
-        $storage['payment_amount'] = str_replace(',', '.', $values['page_contribution_choice']);
+        $storage['payment_amount'] = $values['page_contribution_choice'];
       }
       $storage['payment_method'] = $values['page_contribution_payment_method'];
       $storage['bank_account'] = $values['page_contribution_iban'];
@@ -686,7 +685,7 @@ function memberform_shared_submit($form, &$form_state) {
       // Store payment method and amount.
       $payment_info = explode('_', $values['page_payment_payment_method']);
       $storage['payment_method'] = $payment_info[0];
-      $storage['payment_amount'] = memberform_clean_amount($payment_info[1]);
+      $storage['payment_amount'] = $payment_info[1];
       $storage['bank_account'] = $values['page_payment_iban'];
       break;
 

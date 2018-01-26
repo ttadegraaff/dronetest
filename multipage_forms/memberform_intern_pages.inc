@@ -106,10 +106,6 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     '#date_year_range' => '-14:-120',
     '#required' => TRUE,
     '#date_label_position' => 'within',
-    '#ajax' => array(
-      'wrapper' => 'memberform_form_wrapper',
-      'callback' => 'memberform_ajax_callback',
-    ),
   );
 
   $form['input_address'] = array(
@@ -232,14 +228,6 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
 
   $options = memberform_memberships();
 
-  $age = memberform_get_age($values['start']['page_start_birth_date']);
-  if ($age < 14) {
-    unset ($options['lid_rood']);
-    unset ($options['lid_sp']);
-  }
-  if ($age > 27) {
-    unset ($options['lid_rood']);
-  }
   // When editing existing submission, limit options.
   if (!empty($storage['edit_form'])) {
     $membership_type = $storage['membership_type'];
@@ -480,10 +468,18 @@ function memberform_intern_page_form_validate($form, &$form_state) {
         if (empty($values['page_start_email']) && empty($values['page_start_phone'])) {
           form_set_error('page_start_phone', 'Geef tenminste een e-mailadres of telefoonnummer op zodat we je kunnen bereiken.');
         }
-        if (isset($values['page_start_birth_date']) && (!empty($values['page_start_membership_type']['lid_sp']) || !empty($values['page_start_membership_type']['lid_rood']))) {
-          $age = memberform_get_age($values['page_start_birth_date']);
-          if ($age < 14) {
-            form_set_error('page_start_birth_date', 'Je bent jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
+        // Check memberships by age.
+        $age = memberform_get_age($values['page_start_birth_date']);
+        if (isset($values['page_start_birth_date'])) {
+          if (!empty($values['page_start_membership_type']['lid_rood']) || !empty($values['page_start_membership_type']['lid_sp'])) {
+            if ($age < 14) {
+              form_set_error('page_start_birth_date', 'Contact is jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
+            }
+          }
+          if (!empty($values['page_start_membership_type']['lid_rood'])) {
+            if ($age > 27) {
+              form_set_error('page_start_birth_date', 'Contact is ouder dan 27 jaar, en kunt daarom nog geen lid worden van ROOD.');
+            }
           }
         }
         $checks = array(

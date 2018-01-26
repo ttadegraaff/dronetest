@@ -361,6 +361,9 @@ function memberform_overview_table($form_state) {
               case 'textfield':
                 $rows_tmp[] = array($title, $value);
                 break;
+              case 'numberfield':
+                $rows_tmp[] = array($title, str_replace('.', ',', memberform_clean_amount($value)));
+                break;
 
               case 'date_select':
                 $date = date("d-m-Y", strtotime($value));
