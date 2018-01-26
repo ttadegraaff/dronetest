@@ -337,6 +337,7 @@ function memberform_overview_table($form_state) {
   $rows = array();
 
   // Loop through pages.
+  $values = array_merge($storage['pages'], $values);
   foreach ($values as $page => $items) {
     if (in_array($page, $storage['page_history'])) {
       $page_title = (empty($pages[$page])) ? '' : $pages[$page];
@@ -359,6 +360,8 @@ function memberform_overview_table($form_state) {
             // Parse output of different form element types.
             switch ($form_element['#type']) {
               case 'textfield':
+              case 'emailfield':
+              case 'telfield':
                 $rows_tmp[] = array($title, $value);
                 break;
               case 'numberfield':
