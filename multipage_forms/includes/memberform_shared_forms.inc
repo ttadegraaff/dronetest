@@ -298,6 +298,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
       'wrapper' => 'memberform_form_wrapper',
       'callback' => 'memberform_ajax_callback',
     ),
+    '#attributes' => array('class' => array('memberform-radio-button')),
   );
 
   if ($storage['values']['contribution']['page_contribution_choice'] === 'custom') {
@@ -323,6 +324,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
       'wrapper' => 'memberform_form_wrapper',
       'callback' => 'memberform_ajax_callback',
     ),
+    '#attributes' => array('class' => array('memberform-radio-button')),
   );
 
   $form['input']['page_contribution_iban'] = array(
@@ -385,6 +387,7 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
       'wrapper' => 'memberform_form_wrapper',
       'callback' => 'memberform_ajax_callback',
     ),
+    '#attributes' => array('class' => array('memberform-radio-button')),
   );
 
   $form['input']['page_payment_iban'] = array(
@@ -469,8 +472,13 @@ function memberform_shared_page_gift_form(&$form, &$form_state) {
       ),
     );
 
-    if ($form_type === 'select') {
+    switch ($form_type) {
+    case 'select':
       $form['input']['page_gift_select_' . $membership]['#empty_option'] = '- Maak een keuze -';
+      break;
+    case 'radios':
+      $form['input']['page_gift_select_' . $membership]['#attributes']['class'][] = 'memberform-radio-button';
+      break;
     }
   }
 }
