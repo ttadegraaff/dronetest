@@ -719,9 +719,9 @@ function memberform_shared_submit($form, &$form_state) {
     $storage['sid'] = $store_result['submission_id'];
   }
 
+  $fields = $store_result['fields'];
   if ($storage['current_page'] == 'summary' && !empty($fields['email'])) {
     // Send confirmation mail when submitting summary page.
-    $fields = $store_result['fields'];
     $mail = drupal_mail(
       'memberform', 'verificatie', $fields['email'], LANGUAGE_NONE,
       array(
