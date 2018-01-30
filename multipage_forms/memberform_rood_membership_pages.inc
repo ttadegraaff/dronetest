@@ -149,7 +149,7 @@ function memberform_rood_membership_page_thanks_form(&$form, &$form_state) {
     '#attributes' => array('class' => array('memberform-feedback')),
   );
 
-  switch (end($storage['page_history'])) {
+  switch (end($storage['nav_history'])) {
     case 'quickfinish':
       $form['feedback']['thanks'] = array(
         '#markup' => '<p>Welkom bij ROOD ' . check_plain($name) . '!</p><p>Je aanmelding is gelukt. We gaan je binnenkort bellen om je inschrijving af te ronden.</p>',

@@ -339,7 +339,7 @@ function memberform_overview_table($form_state) {
   // Loop through pages.
   $values = array_merge($storage['pages'], $values);
   foreach ($values as $page => $items) {
-    if (in_array($page, $storage['page_history'])) {
+    if (in_array($page, $storage['nav_history'])) {
       $page_title = (empty($pages[$page])) ? '' : $pages[$page];
       $rows_tmp[] = array(
         'data' => array(

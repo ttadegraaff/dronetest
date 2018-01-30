@@ -133,7 +133,7 @@ function memberform_membership_page_thanks_form(&$form, &$form_state) {
     '#attributes' => array('class' => array('memberform-feedback')),
   );
 
-  switch (end($storage['page_history'])) {
+  switch ($storage['previous_page']) {
     case 'quickfinish':
       $form['feedback']['thanks'] = array(
         '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>Je aanmelding is gelukt. We bellen je binnenkort om je inschrijving af te ronden.</p>',

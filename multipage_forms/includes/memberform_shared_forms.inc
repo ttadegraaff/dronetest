@@ -732,7 +732,7 @@ function memberform_shared_submit($form, &$form_state) {
       )
     );
     if (empty($mail['send'])) {
-      $form_state['next_page'] = $storage['current_page'];
+      $storage['next_page'] = $storage['current_page'];
       drupal_set_message('Het is niet gelukt om de bevestigingsmail te versturen. Houdt dit probleem aan, neem dan contact op met webmaster@sp.nl', 'error');
     }
   }

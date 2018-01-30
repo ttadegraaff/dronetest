@@ -122,7 +122,7 @@ function memberform_spanning_page_thanks_form(&$form, &$form_state) {
     '#attributes' => array('class' => array('memberform-feedback')),
   );
 
-  switch (end($storage['page_history'])) {
+  switch (end($storage['nav_history'])) {
     case 'quickfinish':
       $form['feedback']['thanks'] = array(
         '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de Spanning.</p><p>Je aanmelding is gelukt. We bellen je binnenkort om je inschrijving af te ronden.',

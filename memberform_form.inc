@@ -32,7 +32,7 @@ function memberform_form($form, &$form_state, $form_name) {
   // Set default page.
   if (empty($storage['current_page'])) {
     $storage['current_page'] = 'start';
-    $storage['page_history'][] = 'start';
+    $storage['nav_history'][] = 'start';
   }
 
   $form_state['validate'] = TRUE;
@@ -69,7 +69,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Add form navigation.
-  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['pages']) && count($storage['page_history']) > 1) {
+  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['pages']) && count($storage['nav_history']) > 1) {
     $form['form_navigation'] = array(
       '#type' => 'fieldset',
       '#attributes' => array('class' => array('memberform-navigation')),
@@ -99,7 +99,7 @@ function memberform_form($form, &$form_state, $form_name) {
             'wrapper' => 'memberform_form_wrapper',
             'callback' => 'memberform_ajax_callback',
           ),
-          '#disabled' => !(in_array($form_page, $storage['page_history']) || $form_page === $storage['current_page']),
+          '#disabled' => !(in_array($form_page, $storage['nav_history']) || $form_page === $storage['current_page']),
           '#attributes' => ($form_page === $storage['current_page']) ? array('class' => array('active')) : array(),
         );
       }
@@ -127,7 +127,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Add action buttons.
-  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['previous_page']) && !in_array($storage['previous_page'], $storage['no_nav_pages'])) {
+  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['previous_page']))  {
     $form['action']['previous_page'] = array(
       '#type' => 'submit',
       '#value' => 'Terug',
@@ -179,7 +179,7 @@ function memberform_form_pre_custom_validate($form, &$form_state) {
   // Implement required fields validation.
   $trigger = $form_state['triggering_element']['#name'];
   preg_match('/^go_to_([a-z_]+)$/', $trigger, $matches);
-  if ($storage['current_page'] == end($storage['page_history']) && ($trigger == 'previous_page' || !empty($matches[1]))) {
+  if ($storage['current_page'] == end($storage['nav_history']) && ($trigger == 'previous_page' || !empty($matches[1]))) {
     $form_state['validate'] = FALSE;
   }
   if ($form_state['validate']) {
@@ -250,33 +250,33 @@ function memberform_form_submit($form, &$form_state) {
     }
   }
 
-  $current_page_history_key = array_search($storage['current_page'], $storage['page_history']);
+  // Get current naviation state.
+  $nav = memberform_get_nav($storage);
+
+  // Clear navigation when new next page.
+  if ($nav['next_page'] && !in_array($storage['next_page'], $storage['no_nav_pages']) && $storage['next_page'] !== $nav['next_page']) {
+    $pos = array_search($storage['current_page'], $storage['nav_history']);
+    $storage['nav_history'] = array_splice($storage['nav_history'], 0, $pos + 1);
+  }
+
   // Process previous, next page.
   $trigger = $form_state['triggering_element']['#name'];
+  $storage['previous_page'] = $storage['current_page'];
 
   switch ($trigger) {
     case 'previous_page':
-      $storage['current_page'] = $storage['previous_page'];
-      unset($storage['next_page']);
+      if (!empty($nav['previous_page'])) {
+        $storage['current_page'] = $nav['previous_page'];
+      }
       break;
 
     case 'next_page':
-      if (array_search($storage['current_page'], $storage['page_history']) !== FALSE) {
-        $current_page_history_key = array_search($storage['current_page'], $storage['page_history']);
-      }
-      else {
-        $current_page_history_key = FALSE;
-      }
-      $next_page_history_key = empty($storage['page_history'][$current_page_history_key + 1]) ? false : $current_page_history_key + 1;
-      if ($next_page_history_key) {
-        if ($storage['next_page'] === $storage['page_history'][$next_page_history_key]) {
-          $storage['current_page'] = $storage['next_page'];
-        }
-        elseif (in_array($storage['next_page'], $storage['no_nav_pages'])) {
-          $storage['current_page'] = $storage['page_history'][$next_page_history_key];
+    case 'call_back':
+      if (in_array($storage['next_page'], $storage['no_nav_pages'])) {
+        if ($nav['next_page']) {
+          $storage['current_page'] = $nav['next_page'];
         }
         else {
-          array_splice($storage['page_history'], $current_page_history_key + 1);
           $storage['current_page'] = $storage['next_page'];
         }
       }
@@ -290,16 +290,15 @@ function memberform_form_submit($form, &$form_state) {
   preg_match('/^go_to_([a-z_]+)$/', $trigger, $matches);
   if (!empty($matches[1])) {
     $storage['current_page'] = $matches[1];
-    unset($storage['next_page']);
   }
 
   // Add current page to history.
-  if (array_search($storage['current_page'], $storage['page_history']) === FALSE && !in_array($storage['current_page'], $storage['no_nav_pages'])) {
-    $storage['page_history'][] = $storage['current_page'];
+  if (array_search($storage['current_page'], $storage['nav_history']) === FALSE) {
+    $storage['nav_history'][] = $storage['current_page'];
   }
 
-  // Set previous_page.
-  $storage['previous_page'] = $storage['page_history'][array_search($storage['current_page'], $storage['page_history']) - 1];
+  // Store next and previous pages.
+  $nav = memberform_get_nav($storage);
 
   // Store form data in database.
   memberform_store_form_data($storage);
@@ -366,4 +365,35 @@ function memberform_modify_form_elements(&$item, &$form_state, $key) {
       }
     }
   }
+}
+
+function memberform_get_nav($storage) {
+  if (!empty($storage['current_page'])) {
+    $current_nav_history_key = array_search($storage['current_page'], $storage['nav_history']);
+    if ($current_nav_history_key !== FALSE) {
+      $prev_elements = array_reverse(array_slice($storage['nav_history'], 0, $current_nav_history_key, TRUE));
+      $previous_page = false;
+      foreach($prev_elements as $key => $page) {
+        if (array_search($page, $storage['no_nav_pages']) === FALSE) {
+          $previous_page = $page;
+          break;
+        }
+      }
+      $next_elements = array_slice($storage['nav_history'], $current_nav_history_key + 1, NULL, TRUE);
+      $next_page = false;
+      foreach($next_elements as $key => $page) {
+        if (array_search($page, $storage['no_nav_pages']) === FALSE) {
+          $next_page = $page;
+          break;
+        }
+      }
+      $result = array(
+        'previous_page' => $previous_page,
+        'current_page' => $storage['current_page'],
+        'next_page' => $next_page,
+      );
+      return $result;
+    }
+  }
+  return FALSE;
 }
