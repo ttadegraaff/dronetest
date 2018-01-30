@@ -122,15 +122,15 @@ function memberform_spanning_page_thanks_form(&$form, &$form_state) {
     '#attributes' => array('class' => array('memberform-feedback')),
   );
 
-  switch (end($storage['nav_history'])) {
+  switch ($storage['previous_page']) {
     case 'quickfinish':
       $form['feedback']['thanks'] = array(
-        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de Spanning.</p><p>Je aanmelding is gelukt. We bellen je binnenkort om je inschrijving af te ronden.',
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de Spanning.</p><p>We bellen je binnenkort om je inschrijving af te ronden.',
       );
       break;
     case 'summary':
       $form['feedback']['thanks'] = array(
-        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de Spanning.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken.',
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de Spanning.</p><p>Je ontvangt zo een e-mail met daarin een link die je moet aanklikken om de aanmelding te bevestigen.</p><p>Heb je vagen over het lidmaatschap of gegevens? Neem dan contact op met onze <a href="https://www.sp.nl/contact/partijbureau">ledenadministratie</a></p>',
       );
       break;
   }

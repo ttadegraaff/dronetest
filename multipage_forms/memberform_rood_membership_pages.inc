@@ -149,15 +149,15 @@ function memberform_rood_membership_page_thanks_form(&$form, &$form_state) {
     '#attributes' => array('class' => array('memberform-feedback')),
   );
 
-  switch (end($storage['nav_history'])) {
+  switch ($storage['previous_page']) {
     case 'quickfinish':
       $form['feedback']['thanks'] = array(
-        '#markup' => '<p>Welkom bij ROOD ' . check_plain($name) . '!</p><p>Je aanmelding is gelukt. We gaan je binnenkort bellen om je inschrijving af te ronden.</p>',
+        '#markup' => '<p>Welkom bij ROOD ' . check_plain($name) . '!</p><p>We bellen je binnenkort om je inschrijving af te ronden.</p>',
       );
       break;
     case 'summary':
       $form['feedback']['thanks'] = array(
-        '#markup' => '<p>Welkom bij ROOD ' . check_plain($name) . '!</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
+        '#markup' => '<p>Welkom bij ROOD ' . check_plain($name) . '! Je ontvangt zo een e-mail met daarin een link die je moet aanklikken om de aanmelding te bevestigen.</p><p>Heb je vagen over het lidmaatschap of gegevens? Neem dan contact op met onze <a href="https://www.sp.nl/contact/partijbureau">ledenadministratie</a></p>',
       );
       break;
   }

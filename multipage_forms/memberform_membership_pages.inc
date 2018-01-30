@@ -136,12 +136,12 @@ function memberform_membership_page_thanks_form(&$form, &$form_state) {
   switch ($storage['previous_page']) {
     case 'quickfinish':
       $form['feedback']['thanks'] = array(
-        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>Je aanmelding is gelukt. We bellen je binnenkort om je inschrijving af te ronden.</p>',
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid.</p><p>We bellen je binnenkort om je inschrijving af te ronden.</p>',
       );
       break;
     case 'summary':
       $form['feedback']['thanks'] = array(
-        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de SP.</p><p>We gaan je inschrijving zo spoedig mogelijk verwerken. Je ontvangt binnenkort via de post je lidmaatschapskaart.</p>',
+        '#markup' => '<p>Bedankt ' . check_plain($name) . ' voor je aanmelding als lid van de SP. Samen werken we aan ons sociaal alternatief.</p><p>Je ontvangt zo een e-mail met daarin een link die je moet aanklikken om de aanmelding te bevestigen.</p><p>Heb je vagen over het lidmaatschap of gegevens? Neem dan contact op met onze <a href="https://www.sp.nl/contact/partijbureau">ledenadministratie</a></p>',
       );
       break;
   }
