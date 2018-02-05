@@ -69,7 +69,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Add form navigation.
-  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['pages']) && count($storage['nav_history']) > 1) {
+  if ($storage['current_page'] !== $storage['feedback_page'] && count($storage['nav_history']) > 1 && !in_array($storage['current_page'], $storage['no_nav_pages'])) {
     $form['form_navigation'] = array(
       '#type' => 'fieldset',
       '#attributes' => array('class' => array('memberform-navigation')),
@@ -127,7 +127,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Add action buttons.
-  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['previous_page']))  {
+  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['previous_page']) && !in_array($storage['current_page'], $storage['no_nav_pages']))  {
     $form['action']['previous_page'] = array(
       '#type' => 'submit',
       '#value' => 'Terug',
