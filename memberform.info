@@ -1,6 +1,6 @@
 name = SP Lidworden Formulier
 description = Leden kunnen zich aanmelden.
-dependencies[] = date:date_api
+version = 1.0.0
 core = 7.x
 package = sprbs
 
@@ -9,3 +9,4 @@ dependencies[] = spciviapi
 dependencies[] = media
 dependencies[] = elements
 dependencies[] = date_popup
+dependencies[] = date_api
