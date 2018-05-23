@@ -1,0 +1,12 @@
+{
+  "name": "spnl/nl.sp.drupal-memberform",
+  "description": "SP Lidworden Formulier",
+  "type": "drupal-custom-module",
+  "authors": [
+    {
+      "name": "Thomas de Graaff",
+      "email": "tdgraaff@sp.nl"
+    }
+  ],
+  "license": "GPL-2.0"
+}
