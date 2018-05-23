@@ -244,8 +244,7 @@ function memberform_update_7002() {
 }
 
 /**
- * Adds image field to memberform_gifts table, and note field to
- * memverform_submissions table.
+ * Adds image to memberform_gifts table, note to memverform_submissions table.
  */
 function memberform_update_7003() {
   $schema = memberform_schema();
@@ -256,8 +255,7 @@ function memberform_update_7003() {
 }
 
 /**
- * Adds form_page field and confirmation_type field to
- * memberfrom_submissions table.
+ * Adds form_page field and confirmation_type field to memberfrom_submissions.
  */
 function memberform_update_7004() {
   $schema = memberform_schema();
@@ -281,4 +279,18 @@ function memberform_update_7005() {
  */
 function memberform_update_7006() {
   db_drop_field('memberform_storage', 'hash');
+}
+
+/**
+ * Imports data from sp_aanmelden module, and disables it.
+ */
+function memberform_update_7007() {
+  if (module_exists('spaanmelden')) {
+    $query = "INSERT INTO {memberform_submissions} (membership_type, hash, initials, firstname, middlename, lastname, gender, birthdate, email, phone, phone_mobile, country, zipcode, housenumber, housenumber_suffix, street, city, contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood, source, created, verified, reminded, submitted, errormsg, flags, contact_id, note) SELECT membership_type, hash, initials, firstname, middlename, lastname, gender, birthdate, email, phone, phone_mobile, country, zipcode, housenumber, housenumber_suffix, street, city, contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood, source, created, verified, reminded, submitted, errormsg, flags, contact_id, note FROM {sp_aanmeldingen}";
+    $result = db_query($query);
+
+    $query = "INSERT INTO {memberform_gifts} (membership_type, internal_name, name, position, show_website) SELECT membership_type, internal_name, name, position, show_website FROM {sp_aanmeldingen_gifts}";
+    $result = db_query($query);
+    module_disable(array('spaanmelden'));
+  }
 }
