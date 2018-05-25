@@ -8,6 +8,7 @@
  * Include form page definitions.
  */
 module_load_include('inc', 'memberform', 'memberform_helpers');
+module_load_include('inc', 'pathauto', 'pathauto');
 
 // Include form definition files in /pages.
 module_load_include('inc', 'memberform', 'multipage_forms/includes/memberform_pages_helpers');

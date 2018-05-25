@@ -55,6 +55,9 @@ function memberform_form($form, &$form_state, $form_name) {
       'css' => array(
         drupal_get_path('module', 'memberform') . '/css/memberform.css',
       ),
+      'js' => array(
+        drupal_get_path('module', 'memberform') . '/js/memberform.js',
+      ),
     ),
     '#attributes' => array('class' => array('memberform_' . $form_name)),
   );
@@ -313,7 +316,28 @@ function memberform_form_submit($form, &$form_state) {
  * Ajax callback function for memberform.
  */
 function memberform_ajax_callback($form, &$form_state) {
-  return $form;
+  $storage = $form_state['storage'];
+  $trigger = $form_state['triggering_element']['#name'];
+  $nav = memberform_get_nav($storage);
+  $commands = array();
+  $commands[] = ajax_command_html('#memberform_form_wrapper', render($form));
+  switch ($trigger) {
+    case 'previous_page':
+    case 'next_page':
+      $title = $storage['pages'][$nav['current_page']];
+      $base_path = base_path();
+      $settings_callback = 'memberform_' . $storage['form_name'] . '_settings';
+      $form_path_name = $settings_callback('path_name');
+      $page_name = pathauto_cleanstring($title);
+      $path = $base_path . $form_path_name . '/' . $page_name;
+      $commands[] = array(
+        'command' => 'memberform_ga',
+        'title'  => $title,
+        'path'  => $path,
+      );
+      break;
+  }
+  return array('#type' => 'ajax', '#commands' => $commands);
 }
 
 function memberform_clear_form(&$form_state) {
