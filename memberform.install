@@ -5,6 +5,20 @@
  */
 
 /**
+ * Implements hook_install().
+ */
+function memberform_install() {
+  if (module_exists('spaanmelden')) {
+    $query = "INSERT INTO {memberform_submissions} (id, membership_type, hash, initials, firstname, middlename, lastname, gender, birthdate, email, phone, phone_mobile, country, zipcode, housenumber, housenumber_suffix, street, city, contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood, source, created, verified, reminded, submitted, errormsg, flags, contact_id, note) SELECT id, membership_type, hash, initials, firstname, middlename, lastname, gender, birthdate, email, phone, phone_mobile, country, zipcode, housenumber, housenumber_suffix, street, city, contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood, source, created, verified, reminded, submitted, errormsg, flags, contact_id, note FROM {sp_aanmeldingen}";
+    $result = db_query($query);
+    $query = "INSERT INTO {memberform_gifts} (id, membership_type, internal_name, name, position, show_website) SELECT id, membership_type, internal_name, name, position, show_website FROM {sp_aanmeldingen_gifts}";
+    $result = db_query($query);
+
+    module_disable(array('spaanmelden'));
+  }
+}
+
+/**
  * Implements hook_schema().
  */
 function memberform_schema() {
@@ -283,18 +297,4 @@ function memberform_update_7005() {
  */
 function memberform_update_7006() {
   db_drop_field('memberform_storage', 'hash');
-}
-
-/**
- * Imports data from sp_aanmelden module, and disables it.
- */
-function memberform_update_7007() {
-  if (module_exists('spaanmelden')) {
-    $query = "INSERT INTO {memberform_submissions} (id, membership_type, hash, initials, firstname, middlename, lastname, gender, birthdate, email, phone, phone_mobile, country, zipcode, housenumber, housenumber_suffix, street, city, contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood, source, created, verified, reminded, submitted, errormsg, flags, contact_id, note) SELECT id, membership_type, hash, initials, firstname, middlename, lastname, gender, birthdate, email, phone, phone_mobile, country, zipcode, housenumber, housenumber_suffix, street, city, contribution, bank_account, payment_method, welcome_present_sp, welcome_present_rood, source, created, verified, reminded, submitted, errormsg, flags, contact_id, note FROM {sp_aanmeldingen}";
-    $result = db_query($query);
-    $query = "INSERT INTO {memberform_gifts} (id, membership_type, internal_name, name, position, show_website) SELECT id, membership_type, internal_name, name, position, show_website FROM {sp_aanmeldingen_gifts}";
-    $result = db_query($query);
-
-    module_disable(array('spaanmelden'));
-  }
 }
