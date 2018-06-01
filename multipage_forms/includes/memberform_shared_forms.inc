@@ -191,10 +191,6 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
       '#title'         => 'Postcode',
       '#type'          => 'textfield',
       '#required'      => TRUE,
-      '#ajax' => array(
-        'wrapper' => 'memberform_form_wrapper',
-        'callback' => 'memberform_ajax_callback',
-      ),
       '#attributes' => array('placeholder' => '1234AB'),
     );
     $form['input']['page_address_house_number'] = array(
@@ -204,6 +200,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
       '#ajax' => array(
         'wrapper' => 'memberform_form_wrapper',
         'callback' => 'memberform_ajax_callback',
+        'event' => 'change'
       ),
     );
     $form['input']['page_address_house_number_addition'] = array(
@@ -211,14 +208,18 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
       '#type'          => 'textfield',
     );
     // Get address data based on postal code and house number.
-    if (!empty($storage['values']['address']['page_address_postal_code'])) {
-      $house_number = (isset($storage['values']['address']['page_address_house_number'])) ? $storage['values']['address']['page_address_house_number'] : NULL;
-      $address_data = memberform_postcode_lookup($storage['values']['address']['page_address_postal_code'], $house_number);
+    if (!empty($storage['values']['address']['page_address_postal_code']) && !empty($storage['values']['address']['page_address_house_number'])) {
+      $address_data = memberform_postcode_lookup($storage['values']['address']['page_address_postal_code'], $storage['values']['address']['page_address_house_number']);
       if (!is_object($address_data) && !empty($address_data)) {
         // Show warning when postalcode housenumber combination is not found.
         $message = '<div class="messages warning">' . $address_data . '</div>';
         $form['input']['page_address_house_number']['#field_suffix'] = empty($form['input']['page_address_house_number']['#field_suffix']) ? $message : $form['input']['page_address_house_number']['#field_suffix'] . $message;
       }
+      $form['input']['page_address_postal_code']['#ajax'] = array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+        'event' => 'change'
+      );
     }
     // Set street value.
     $form['input']['page_address_street'] = array(
