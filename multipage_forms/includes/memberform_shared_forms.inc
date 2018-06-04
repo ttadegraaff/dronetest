@@ -340,19 +340,12 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
   );
 
   $form['input']['page_contribution_accept_costs']['accept_consts_message'] = array(
-    '#markup' => '<p><strong>Let op, de kosten voor betaling via acceptgiro bedragen 6 euro per kwartaal.</strong></p>',
+    '#markup' => '<p><strong>Let op! De kosten voor betaling via acceptgiro bedragen 6 euro per kwartaal.</strong></p>',
   );
 
   $form['input']['page_contribution_iban'] = array(
     '#title' => 'Wat is je bankrekeningnummer?',
     '#type' => 'textfield',
-    '#states' => array(
-      'visible' => array(
-        ':input[name="page_contribution_payment_method"]' => array(
-          'value' => 'auto',
-        ),
-      ),
-    ),
   );
 }
 
@@ -409,17 +402,6 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
   $form['input']['page_payment_iban'] = array(
     '#title' => 'Wat is je bankrekeningnummer?',
     '#type' => 'textfield',
-    '#states' => array(
-      'visible' => array(
-        array(
-          array(':input[name="page_payment_payment_method"]' => array('value' => 'auto_5')),
-          array('or'),
-          array(':input[name="page_payment_payment_method"]' => array('value' => 'auto_12')),
-          array('or'),
-          array(':input[name="page_payment_payment_method"]' => array('value' => 'auto_20')),
-        ),
-      ),
-    ),
   );
 }
 
@@ -581,35 +563,28 @@ function memberform_shared_validation($form, &$form_state) {
             $values['page_contribution_custom'] = $amount;
           }
         }
-        if ($values['page_contribution_payment_method'] === 'auto') {
-          $iban = strtoupper($values['page_contribution_iban']);
-          $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
-          if ($storage['values']['address']['page_address_country'] === 'NL') {
-            if (!memberform_check_iban($iban)) {
-              form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
-            }
-            else {
-              $values['page_contribution_iban'] = $iban;
-            }
+        $iban = strtoupper($values['page_contribution_iban']);
+        $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
+        if ($storage['values']['address']['page_address_country'] === 'NL') {
+          if (!memberform_check_iban($iban)) {
+            form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
+          }
+          else {
+            $values['page_contribution_iban'] = $iban;
           }
         }
         break;
 
       case 'payment':
-        if (strpos($values['page_payment_payment_method'], 'auto') === 0) {
-          $iban = strtoupper($values['page_payment_iban']);
-          $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
-          if ($storage['values']['address']['page_address_country'] === 'NL') {
-            if (!memberform_check_iban($iban)) {
-              form_set_error('page_payment_iban', 'Vul een geldig iban nummer in.');
-            }
-            else {
-              $values['page_payment_iban'] = $iban;
-            }
+        $iban = strtoupper($values['page_payment_iban']);
+        $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
+        if ($storage['values']['address']['page_address_country'] === 'NL') {
+          if (!memberform_check_iban($iban)) {
+            form_set_error('page_payment_iban', 'Vul een geldig iban nummer in.');
           }
-        }
-        if (strpos($values['page_payment_payment_method'], 'accept') === 0) {
-          unset($values['page_payment_iban']);
+          else {
+            $values['page_payment_iban'] = $iban;
+          }
         }
         break;
     }
