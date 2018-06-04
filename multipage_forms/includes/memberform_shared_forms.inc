@@ -328,6 +328,21 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
     '#attributes' => array('class' => array('memberform-radio-button')),
   );
 
+  $form['input']['page_contribution_accept_costs'] = array(
+    '#type' => 'container',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="page_contribution_payment_method"]' => array(
+          'value' => 'accept',
+        ),
+      ),
+    ),
+  );
+
+  $form['input']['page_contribution_accept_costs']['accept_consts_message'] = array(
+    '#markup' => '<p><strong>Let op, de kosten voor betaling via acceptgiro bedragen 6 euro per kwartaal.</strong></p>',
+  );
+
   $form['input']['page_contribution_iban'] = array(
     '#title' => 'Wat is je bankrekeningnummer?',
     '#type' => 'textfield',
@@ -359,8 +374,8 @@ function memberform_shared_page_payment_form(&$form, &$form_state) {
       }
       else {
         $options = array(
-          'auto_20' => 'Automatische incasso € 20 (€ 12 voor leden)',
-          'accept_24' => 'Acceptgiro € 24 (€ 12 voor leden)',
+          'auto_20' => 'Automatische incasso, € 20 per jaar (€ 12 voor leden)',
+          'accept_24' => 'Acceptgiro, € 24 per jaar (€ 12 voor leden)',
         );
       }
       break;
