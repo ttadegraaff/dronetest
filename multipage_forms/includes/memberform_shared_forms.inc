@@ -347,7 +347,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
 function memberform_shared_page_payment_form(&$form, &$form_state) {
   $storage = $form_state['storage'];
   $form_name = $storage['form_name'];
-  $is_member = $storage['values']['person_details']['page_person_details_spmember'];
+  $is_member = $storage['values']['person_details']['page_person_details_spmember']['is_member'];
 
   switch ($form_name) {
     case 'spanning':
