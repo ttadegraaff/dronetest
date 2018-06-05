@@ -418,3 +418,17 @@ function memberform_overview_table($form_state) {
 
   return $markup;
 }
+
+/**
+ * Check postal code.
+ */
+function memberform_valid_pc($postal_code) {
+  return preg_match('/^[1-9][0-9]{3}\s?[a-zA-Z]{2}$/', $postal_code);
+}
+
+/**
+ * Check house number.
+ */
+function memberform_valid_nr($house_number) {
+  return preg_match('/^[1-9][0-9]*$/', $house_number);
+}

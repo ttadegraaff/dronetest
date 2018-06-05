@@ -207,20 +207,6 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
       '#title'         => 'Huisnummer toevoeging',
       '#type'          => 'textfield',
     );
-    // Get address data based on postal code and house number.
-    if (!empty($storage['values']['address']['page_address_postal_code']) && !empty($storage['values']['address']['page_address_house_number'])) {
-      $address_data = memberform_postcode_lookup($storage['values']['address']['page_address_postal_code'], $storage['values']['address']['page_address_house_number']);
-      if (!is_object($address_data) && !empty($address_data)) {
-        // Show warning when postalcode housenumber combination is not found.
-        $message = '<div class="messages warning">' . $address_data . '</div>';
-        $form['input']['page_address_house_number']['#field_suffix'] = empty($form['input']['page_address_house_number']['#field_suffix']) ? $message : $form['input']['page_address_house_number']['#field_suffix'] . $message;
-      }
-      $form['input']['page_address_postal_code']['#ajax'] = array(
-        'wrapper' => 'memberform_form_wrapper',
-        'callback' => 'memberform_ajax_callback',
-        'event' => 'change'
-      );
-    }
     // Set street value.
     $form['input']['page_address_street'] = array(
       '#title'         => 'Straat',
@@ -233,15 +219,48 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
-    if (!empty($storage['values']['address']['page_address_postal_code'])) {
-      if (!empty($address_data->adres)) {
-        $form['input']['page_address_street']['#default_value'] = $address_data->adres;
-        //$form['input']['page_address_street']['#value'] = $address_data->adres;
-      };
-      if (!empty($address_data->woonplaats)) {
-        $form['input']['page_address_locality']['#default_value'] = $address_data->woonplaats;
-        //$form['input']['page_address_locality']['#value'] = $address_data->woonplaats;
-      };
+    // Get address data based on postal code and house number.
+    $postal_code = $storage['values']['address']['page_address_postal_code'];
+    $house_number = $storage['values']['address']['page_address_house_number'];
+    if (empty($storage['address_fixed'])) {
+      if (!empty($postal_code) && !empty($house_number)) {
+        if (!memberform_valid_pc($postal_code) || !memberform_valid_nr($house_number)) {
+          if (!memberform_valid_pc($postal_code)) {
+            // Show warning when postalcode not valid.
+            $message = '<div class="messages warning">Deze postcode is niet geldig!</div>';
+            $form['input']['page_address_postal_code']['#field_suffix'] = empty($form['input']['page_address_postal_code']['#field_suffix']) ? $message : $form['input']['page_address_postal_code']['#field_suffix'] . $message;
+          }
+          if (!memberform_valid_nr($house_number)) {
+            // Show warning when postalcode not valid.
+            $message = '<div class="messages warning">Dit huisnummer is niet geldig!</div>';
+            $form['input']['page_address_house_number']['#field_suffix'] = empty($form['input']['page_address_house_number']['#field_suffix']) ? $message : $form['input']['page_address_house_number']['#field_suffix'] . $message;
+          }
+        }
+        else {
+          $address_data = memberform_postcode_lookup($postal_code, $house_number);
+          if (!is_object($address_data) && !empty($address_data)) {
+            // Show warning when postalcode housenumber combination is not found.
+            $message = '<div class="messages warning">' . $address_data . '</div>';
+            $form['input']['page_address_house_number']['#field_suffix'] = empty($form['input']['page_address_house_number']['#field_suffix']) ? $message : $form['input']['page_address_house_number']['#field_suffix'] . $message;
+          }
+          else {
+            // Set values.
+            if (!empty($address_data->adres)) {
+              //$form['input']['page_address_street']['#default_value'] = $address_data->adres;
+              $form['input']['page_address_street']['#value'] = $address_data->adres;
+            };
+            if (!empty($address_data->woonplaats)) {
+              //$form['input']['page_address_locality']['#default_value'] = $address_data->woonplaats;
+              $form['input']['page_address_locality']['#value'] = $address_data->woonplaats;
+            };
+          }
+        }
+        $form['input']['page_address_postal_code']['#ajax'] = array(
+          'wrapper' => 'memberform_form_wrapper',
+          'callback' => 'memberform_ajax_callback',
+          'event' => 'change'
+        );
+      }
     }
   }
   else {
@@ -497,7 +516,6 @@ function memberform_shared_page_summary_form(&$form, &$form_state) {
 function memberform_shared_validation($form, &$form_state) {
   $values = &$form_state['values'];
   $storage = &$form_state['storage'];
-
   // Process trigger.
   $trigger = $form_state['triggering_element']['#name'];
   if ($form_state['validate']) {
@@ -524,6 +542,8 @@ function memberform_shared_validation($form, &$form_state) {
         break;
 
       case 'address':
+        $values['page_address_street'] = $form_state['input']['page_address_street'];
+        $values['page_address_locality'] = $form_state['input']['page_address_locality'];
         $checks = array(
           'postal_code' => array(
             'regex' => '/^[1-9][0-9]{3}\s?[a-zA-Z]{2}$/',
@@ -531,7 +551,7 @@ function memberform_shared_validation($form, &$form_state) {
           ),
           'house_number' => array(
             'regex' => '/^[1-9][0-9]*$/',
-            'message' => 'Vul een huisnummer in',
+            'message' => 'Vul een geldig huisnummer in',
           ),
         );
         // Do no check International postal codes.
@@ -667,6 +687,7 @@ function memberform_shared_submit($form, &$form_state) {
 
     case 'address':
       $storage['next_page'] = 'contribution';
+      $storage['address_fixed'] = true;
       break;
 
     case 'contribution':
