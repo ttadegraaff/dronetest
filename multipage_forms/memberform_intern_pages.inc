@@ -66,6 +66,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
   $storage = &$form_state['storage'];
   $values = &$storage['values'];
 
+  // Person details.
   $form['input_person_details'] = array(
     '#type' => 'fieldset',
     '#title' => 'Persoonsgegevens',
@@ -108,6 +109,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     '#date_label_position' => 'within',
   );
 
+  // Address form.
   $form['input_address'] = array(
     '#type' => 'fieldset',
     '#title' => 'Adresgegevens',
@@ -135,41 +137,24 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     // Dutch address, autofill street and locality fields.
     $form['input_address']['page_start_postal_code'] = array(
       '#title'         => 'Postcode',
-      '#name'          => 'page_start_postal_code',
       '#type'          => 'textfield',
-      '#required' => TRUE,
-      '#ajax' => array(
-        'wrapper' => 'memberform_form_wrapper',
-        'callback' => 'memberform_ajax_callback',
-      ),
+      '#required'      => TRUE,
+      '#attributes' => array('placeholder' => '1234AB'),
     );
     $form['input_address']['page_start_house_number'] = array(
       '#title'         => 'Huisnummer',
-      '#name'          => 'page_start_house_number',
       '#type'          => 'textfield',
       '#required'      => TRUE,
       '#ajax' => array(
         'wrapper' => 'memberform_form_wrapper',
         'callback' => 'memberform_ajax_callback',
+        'event' => 'change'
       ),
     );
     $form['input_address']['page_start_house_number_addition'] = array(
       '#title'         => 'Huisnummer toevoeging',
       '#type'          => 'textfield',
     );
-
-    // Get address data based on postal code and house number.
-    $postal_code = $storage['values']['start']['page_start_postal_code'];
-    if (!empty($postal_code)) {
-      $house_number = (isset($storage['values']['start']['page_start_house_number'])) ? $storage['values']['start']['page_start_house_number'] : NULL;
-      $address_data = memberform_postcode_lookup($storage['values']['start']['page_start_postal_code'], $house_number);
-      if (!is_object($address_data) && !empty($address_data)) {
-        // Show warning when postalcode housenumber combination is not found.
-        $message = '<div class="messages warning">' . $address_data . '</div>';
-        $form['input_address']['page_start_house_number']['#field_suffix'] = empty($form['input_address']['page_start_house_number']['#field_suffix']) ? $message : $form['input_address']['page_start_house_number']['#field_suffix'] . $message;
-      }
-    }
-
     // Set street value.
     $form['input_address']['page_start_street'] = array(
       '#title'         => 'Straat',
@@ -182,15 +167,50 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
       '#type'          => 'textfield',
       '#required'      => TRUE,
     );
-    if (!empty($storage['values']['start']['page_start_postal_code'])) {
-      if (!empty($address_data->adres)) {
-        $form['input_address']['page_start_street']['#default_value'] = $address_data->adres;
-        $form['input_address']['page_start_street']['#value'] = $address_data->adres;
-      };
-      if (!empty($address_data->woonplaats)) {
-        $form['input_address']['page_start_locality']['#default_value'] = $address_data->woonplaats;
-        $form['input_address']['page_start_locality']['#value'] = $address_data->woonplaats;
-      };
+    // Get address data based on postal code and house number.
+    $postal_code = $values['start']['page_start_postal_code'];
+    $house_number = $values['start']['page_start_house_number'];
+    if (!empty($postal_code) && !empty($house_number)) {
+      if (!memberform_valid_pc($postal_code) || !memberform_valid_nr($house_number)) {
+        if (!memberform_valid_pc($postal_code)) {
+          // Show warning when postalcode not valid.
+          $message = '<div class="messages warning">Deze postcode is niet geldig!</div>';
+          $form['input_address']['page_start_postal_code']['#field_suffix'] = empty($form['input_address']['page_start_postal_code']['#field_suffix']) ? $message : $form['input_address']['page_start_postal_code']['#field_suffix'] . $message;
+        }
+        if (!memberform_valid_nr($house_number)) {
+          // Show warning when postalcode not valid.
+          $message = '<div class="messages warning">Dit huisnummer is niet geldig!</div>';
+          $form['input_address']['page_start_house_number']['#field_suffix'] = empty($form['input_address']['page_start_house_number']['#field_suffix']) ? $message : $form['input_address']['page_start_house_number']['#field_suffix'] . $message;
+        }
+        $form['input_address']['page_start_street']['#value'] = '';
+        $form['input_address']['page_start_locality']['#value'] = '';
+      }
+      else {
+        $address_data = memberform_postcode_lookup($postal_code, $house_number);
+        if (!is_object($address_data) && !empty($address_data)) {
+          // Show warning when postalcode housenumber combination is not found.
+          $message = '<div class="messages warning">' . $address_data . '</div>';
+          $form['input_address']['page_start_house_number']['#field_suffix'] = empty($form['input_address']['page_start_house_number']['#field_suffix']) ? $message : $form['input_address']['page_start_house_number']['#field_suffix'] . $message;
+          $form['input_address']['page_start_street']['#value'] = '';
+          $form['input_address']['page_start_locality']['#value'] = '';
+        }
+        else {
+          // Set values.
+          if (!empty($address_data->adres)) {
+            //$form['input_address']['page_start_street']['#default_value'] = $address_data->adres;
+            $form['input_address']['page_start_street']['#value'] = $address_data->adres;
+          };
+          if (!empty($address_data->woonplaats)) {
+            //$form['input_address']['page_start_locality']['#default_value'] = $address_data->woonplaats;
+            $form['input_address']['page_start_locality']['#value'] = $address_data->woonplaats;
+          };
+        }
+      }
+      $form['input_address']['page_start_postal_code']['#ajax'] = array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+        'event' => 'change'
+      );
     }
   }
   else {
@@ -220,6 +240,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     );
   }
 
+  // Membership form.
   $form['input_membership'] = array(
     '#type' => 'fieldset',
     '#title' => 'Lidmaatschapsgegevens',
@@ -252,6 +273,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     ),
   );
 
+  // Gift form.
   $memberships = $values['start']['page_start_membership_type'];
   $gift_options = array();
   $image_style = variable_get('memberform_gift_image_style', 'thumbnail');
@@ -305,6 +327,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
     }
   }
 
+  // Contribution form.
   if (
     $values['start']['page_start_membership_type']['lid_sp'] ||
     $values['start']['page_start_membership_type']['lid_rood']
@@ -322,6 +345,7 @@ function memberform_intern_page_start_form(&$form, &$form_state) {
         '50' => '50,-',
         '20' => '20,-',
         '10' => '10,-',
+        '5' => '5,-',
         'custom' => 'Anders',
       ),
       '#required' => TRUE,
@@ -482,6 +506,10 @@ function memberform_intern_page_form_validate($form, &$form_state) {
             }
           }
         }
+        // Address.
+        $values['page_start_street'] = $form_state['input_address']['page_start_street'];
+        $values['page_start_locality'] = $form_state['input_address']['page_start_locality'];
+
         $checks = array(
           'postal_code' => array(
             'regex' => '/^[1-9][0-9]{3}\s?[a-zA-Z]{2}$/',

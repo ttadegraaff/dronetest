@@ -235,6 +235,8 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
             $message = '<div class="messages warning">Dit huisnummer is niet geldig!</div>';
             $form['input']['page_address_house_number']['#field_suffix'] = empty($form['input']['page_address_house_number']['#field_suffix']) ? $message : $form['input']['page_address_house_number']['#field_suffix'] . $message;
           }
+          $form['input']['page_address_street']['#value'] = '';
+          $form['input']['page_address_locality']['#value'] = '';
         }
         else {
           $address_data = memberform_postcode_lookup($postal_code, $house_number);
@@ -242,6 +244,8 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
             // Show warning when postalcode housenumber combination is not found.
             $message = '<div class="messages warning">' . $address_data . '</div>';
             $form['input']['page_address_house_number']['#field_suffix'] = empty($form['input']['page_address_house_number']['#field_suffix']) ? $message : $form['input']['page_address_house_number']['#field_suffix'] . $message;
+            $form['input']['page_address_street']['#value'] = '';
+            $form['input']['page_address_locality']['#value'] = '';
           }
           else {
             // Set values.
