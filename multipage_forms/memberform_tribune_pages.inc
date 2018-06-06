@@ -80,6 +80,20 @@ function memberform_tribune_page_person_details_form(&$form, &$form_state) {
   $form['input']['page_person_details_spmember'] = array(
     '#type' => 'checkbox',
     '#title' => 'Ik ben lid van de SP',
+    '#name' => 'page_person_details_spmember',
+  );
+  // Show message for SP members.
+  $form['input']['page_person_details_spmember_message_container'] = array(
+    '#type' => 'container',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="page_person_details_spmember"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $form['input']['page_person_details_spmember_message_container']['page_person_details_spmember_message'] = array(
+    '#markup' => '<strong><p>Let op!</p><p>Als SP lid hoor je de Tribune reeds te ontvangen. Neem contact op met onze afdeling administratie om te kijken waarom u de Tribune niet ontvangt.</p><p>E-mail: <a href="mailto:administratie@sp.nl">administratie@sp.nl</a><br/>Telefoon: (088) 243 55 40).</p></strong>',
   );
 }
 
