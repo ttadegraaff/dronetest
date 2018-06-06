@@ -497,12 +497,12 @@ function memberform_intern_page_form_validate($form, &$form_state) {
         if (isset($values['page_start_birth_date'])) {
           if (!empty($values['page_start_membership_type']['lid_rood']) || !empty($values['page_start_membership_type']['lid_sp'])) {
             if ($age < 14) {
-              form_set_error('page_start_birth_date', 'Contact is jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
+              form_set_error('page_start_birth_date', 'Contact is jonger dan 14 jaar, en kan daarom nog geen lid worden van de SP of ROOD.');
             }
           }
           if (!empty($values['page_start_membership_type']['lid_rood'])) {
             if ($age > 27) {
-              form_set_error('page_start_birth_date', 'Contact is ouder dan 27 jaar, en kunt daarom nog geen lid worden van ROOD.');
+              form_set_error('page_start_birth_date', 'Contact is ouder dan 27 jaar, en kan daarom nog geen lid worden van ROOD.');
             }
           }
         }
