@@ -5,4 +5,15 @@
       ga('send', 'pageview');
     }
   }
+  Drupal.behaviors.memberformModule = {
+    attach: function (context, settings) {
+      // Code to be run on page load, and
+      // on ajax load added here
+      if ( $( ".messages.error" ).first().length ) {
+        $('html, body').animate({
+          scrollTop: ($('.messages.error').first().parent().offset().top)
+        },500);
+      }
+    }
+  }
 })(jQuery, Drupal);
