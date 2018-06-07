@@ -347,7 +347,7 @@ function memberform_clear_form(&$form_state) {
     ->execute();
   }
   unset($_SESSION['memberform']);
-  unset($form_state['storage']);
+  //unset($form_state['storage']); Removed because it breaks google analytics in ajax callback.
 }
 
 function memberform_modify_form_elements(&$item, &$form_state, $key) {
