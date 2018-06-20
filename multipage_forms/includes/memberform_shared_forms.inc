@@ -369,6 +369,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
   $form['input']['page_contribution_iban'] = array(
     '#title' => 'Wat is je bankrekeningnummer?',
     '#type' => 'textfield',
+    '#required' => TRUE,
   );
 }
 
