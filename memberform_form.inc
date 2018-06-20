@@ -205,9 +205,7 @@ function memberform_form_post_custom_validate($form, &$form_state) {
 
   // Store values.
   foreach ($values as $key => $value) {
-    if (!empty($value)) {
-      $storage['values'][$storage['current_page']][$key] = $value;
-    }
+    $storage['values'][$storage['current_page']][$key] = $value;
   }
 
   // Make sure form data is stored on ajax callback.
