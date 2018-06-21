@@ -564,6 +564,7 @@ function memberform_shared_validation($form, &$form_state) {
           unset($checks['postal_code']);
         }
         foreach ($checks as $key => $check) {
+          $values['page_address_' . $key] = str_replace(' ', '', $values['page_address_' . $key]);
           if (!empty($values['page_address_' . $key])) {
             if (!preg_match($check['regex'], $values['page_address_' . $key])) {
               form_set_error('page_address_' . $key, $check['message']);
