@@ -136,25 +136,33 @@ function memberform_shared_page_person_details_form(&$form, &$form_state) {
  * Form definition for red intern page.
  */
 function memberform_shared_page_red_form(&$form, &$form_state) {
+  $storage = $form_state['storage'];
 
   $form['input'] = array(
     '#type' => 'fieldset',
     '#attributes' => array('class' => array('memberform-input')),
   );
 
-  $form['input']['page_red_intro'] = array(
-    '#markup' => '<p><strong>ROOD is de actiefste jongerenorganisatie van Nederland</strong></p><p>Samen met jongeren gaan we de strijd aan voor een betere wereld. We zijn niet bang om onrecht, discriminatie en ongelijkheid te bestrijden waar dat moet gebeuren.</p>',
-  );
+  if (!empty($storage['membership_type']) && $storage['membership_type'] === 'red_member') {
+    $form['input']['page_only_red'] = array(
+      '#markup' => '<p>Omdat je nog geen 16 bent wordt je lid van ROOD, de actiefste jongerenorganisatie van Nederland. Zodra je 16 bent kan je ook lid worden van de SP.</p><p>Samen met jongeren gaan we de strijd aan voor een betere wereld. We zijn niet bang om onrecht, discriminatie en ongelijkheid te bestrijden waar dat moet gebeuren.</p>',
+    );
+  }
+  else {
+    $form['input']['page_red_intro'] = array(
+      '#markup' => '<p><strong>ROOD is de actiefste jongerenorganisatie van Nederland</strong></p><p>Samen met jongeren gaan we de strijd aan voor een betere wereld. We zijn niet bang om onrecht, discriminatie en ongelijkheid te bestrijden waar dat moet gebeuren.</p>',
+    );
 
-  $form['input']['page_red_membership'] = array(
-    '#title' => 'Rood lidmaatschap (gratis)',
-    '#type' => 'radios',
-    '#options' => array(
-      'sp_and_red_member' => 'Ja, ik wil ook lid worden van ROOD, Jong in de SP!',
-      'sp_member' => 'Nee, ik wil alleen lid worden van de SP',
-    ),
-    '#required' => TRUE,
-  );
+    $form['input']['page_red_membership'] = array(
+      '#title' => 'Rood lidmaatschap (gratis)',
+      '#type' => 'radios',
+      '#options' => array(
+        'sp_and_red_member' => 'Ja, ik wil ook lid worden van ROOD, Jong in de SP!',
+        'sp_member' => 'Nee, ik wil alleen lid worden van de SP',
+      ),
+      '#required' => TRUE,
+    );
+  }
 }
 
 /**
@@ -671,7 +679,7 @@ function memberform_shared_submit($form, &$form_state) {
         $age = memberform_get_age($values['page_person_details_birth_date']);
         if ($age < 16) {
           $storage['membership_type'] = 'red_member';
-          $storage['next_page'] = 'address';
+          $storage['next_page'] = 'red';
         }
         elseif ($age <= 27) {
           $storage['next_page'] = 'red';
@@ -687,7 +695,9 @@ function memberform_shared_submit($form, &$form_state) {
       break;
 
     case 'red':
-      $storage['membership_type'] = $values['page_red_membership'];
+    if (empty($storage['membership_type'])) {
+        $storage['membership_type'] = $values['page_red_membership'];
+      }
       $storage['next_page'] = 'address';
       break;
 
