@@ -72,7 +72,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Add form navigation.
-  if ($storage['current_page'] !== $storage['feedback_page'] && count($storage['nav_history']) > 1 && !in_array($storage['current_page'], $storage['no_nav_pages'])) {
+  if ($storage['current_page'] !== $storage['feedback_page'] && count($storage['nav_history']) > 2 && !in_array($storage['current_page'], $storage['no_nav_pages'])) {
     $form['form_navigation'] = array(
       '#type' => 'fieldset',
       '#attributes' => array('class' => array('memberform-navigation')),
@@ -80,7 +80,7 @@ function memberform_form($form, &$form_state, $form_name) {
     $count = 0;
     $page_names_short = array(
       'start' => 'Contactgegevens',
-      'quickfinish' => '',
+      'quickfinish' => 'Bel me',
       'person_details' => 'Persoonsgegevens',
       'red' => 'ROOD',
       'address' => 'Adres',
@@ -102,7 +102,7 @@ function memberform_form($form, &$form_state, $form_name) {
             'wrapper' => 'memberform_form_wrapper',
             'callback' => 'memberform_ajax_callback',
           ),
-          '#disabled' => !(in_array($form_page, $storage['nav_history']) || $form_page === $storage['current_page']),
+          '#disabled' => !in_array($form_page, $storage['nav_history']) || $form_page === $storage['current_page'],
           '#attributes' => ($form_page === $storage['current_page']) ? array('class' => array('active')) : array(),
         );
       }
@@ -130,7 +130,7 @@ function memberform_form($form, &$form_state, $form_name) {
   }
 
   // Add action buttons.
-  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['previous_page']) && !in_array($storage['current_page'], $storage['no_nav_pages']))  {
+  if ($storage['current_page'] !== $storage['feedback_page'] && !empty($storage['previous_page']) && !in_array($storage['current_page'], $storage['no_nav_pages']) && count($form_state['storage']['nav_history']) > 2)  {
     $form['action']['previous_page'] = array(
       '#type' => 'submit',
       '#value' => 'Terug',
@@ -255,10 +255,6 @@ function memberform_form_submit($form, &$form_state) {
   $nav = memberform_get_nav($storage);
 
   // Clear navigation when new next page.
-  if ($nav['next_page'] && !in_array($storage['next_page'], $storage['no_nav_pages']) && $storage['next_page'] !== $nav['next_page']) {
-    $pos = array_search($storage['current_page'], $storage['nav_history']);
-    $storage['nav_history'] = array_splice($storage['nav_history'], 0, $pos + 1);
-  }
 
   // Process previous, next page.
   $trigger = $form_state['triggering_element']['#name'];
@@ -268,22 +264,17 @@ function memberform_form_submit($form, &$form_state) {
     case 'previous_page':
       if (!empty($nav['previous_page'])) {
         $storage['current_page'] = $nav['previous_page'];
+        $storage['next_page'] = $nav['current_page'];
       }
       break;
 
     case 'next_page':
     case 'call_back':
-      if (in_array($storage['next_page'], $storage['no_nav_pages'])) {
-        if ($nav['next_page']) {
-          $storage['current_page'] = $nav['next_page'];
-        }
-        else {
-          $storage['current_page'] = $storage['next_page'];
-        }
+      if ($nav['next_page'] && !in_array($storage['next_page'], $storage['no_nav_pages']) && $storage['next_page'] !== $nav['next_page']) {
+        $pos = array_search($storage['current_page'], $storage['nav_history']);
+        $storage['nav_history'] = array_splice($storage['nav_history'], 0, $pos + 1);
       }
-      else {
-        $storage['current_page'] = $storage['next_page'];
-      }
+      $storage['current_page'] = $storage['next_page'];
       break;
   }
 

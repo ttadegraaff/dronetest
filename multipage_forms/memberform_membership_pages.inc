@@ -38,7 +38,7 @@ function memberform_membership_settings($variable_name) {
     'path_name' => 'aanmelden/lid',
     'form_title' => 'Lid worden',
     'no_nav_pages' => array(
-      'quickfinish',
+      //'quickfinish',
       'thanks',
     ),
     'pages' => array(

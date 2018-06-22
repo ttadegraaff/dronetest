@@ -39,25 +39,39 @@ function memberform_shared_page_start_form(&$form, &$form_state) {
  * Form definition for thanks phone page.
  */
 function memberform_shared_page_quickfinish_form(&$form, &$form_state) {
-  $form['action']['call_back'] = array(
-    '#type' => 'submit',
-    '#value' => 'Bel me om lid te worden',
-    '#name' => 'call_back',
-    '#ajax' => array(
-      'wrapper' => 'memberform_form_wrapper',
-      'callback' => 'memberform_ajax_callback',
-    ),
-  );
-
-  $form['action']['next_page'] = array(
-    '#type' => 'submit',
-    '#value' => 'Ik vul mijn gegevens meteen zelf in',
-    '#name' => 'next_page',
-    '#ajax' => array(
-      'wrapper' => 'memberform_form_wrapper',
-      'callback' => 'memberform_ajax_callback',
-    ),
-  );
+  if (count($form_state['storage']['nav_history']) < 3) {
+    $form['action']['next_page'] = array(
+      '#type' => 'submit',
+      '#value' => 'Ik vul mijn gegevens meteen zelf in',
+      '#name' => 'next_page',
+      '#ajax' => array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+      ),
+    );
+    $form['action']['call_back'] = array(
+      '#type' => 'submit',
+      '#value' => 'Bel me om lid te worden',
+      '#name' => 'call_back',
+      '#ajax' => array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+      ),
+    );
+  }
+  else {
+    $form['input']['call_back'] = array(
+      '#type' => 'submit',
+      '#value' => 'Bel me',
+      '#name' => 'call_back',
+      '#ajax' => array(
+        'wrapper' => 'memberform_form_wrapper',
+        'callback' => 'memberform_ajax_callback',
+      ),
+      '#prefix' => '<div class="memberform-inform-button">',
+      '#suffix' => '</class>',
+    );
+  }
 }
 
 /**

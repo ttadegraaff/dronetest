@@ -150,7 +150,8 @@ span.field-prefix {
   vertical-align: top;
 }
 
-#memberform_form_wrapper input[type="radio"]:checked+label {
+#memberform_form_wrapper input[type="radio"]:checked+label,
+#memberform_form_wrapper input[type="radio"]:hover+label {
     background: #f60000;
     color: #fff;
 }
@@ -159,10 +160,13 @@ span.field-prefix {
 .memberform-navigation {
     text-align: center;
 }
+.memberform-navigation .active.form-submit.form-button-disabled {
+  color: #222;
+}
 .memberform-navigation .form-submit {
     font-family: "HelveticaNeueLTStd-Md", "Helvetica Neue", Helvetica, "Roboto Sans", "Segoe UI", Arial, "Lucida Grande", sans-serif;
     font-weight: normal;
-    text-transform: capitalize;
+    text-transform: none;
     background: none;
     margin-right: 0;
     padding: 4px;
@@ -232,6 +236,9 @@ span.field-prefix {
     margin-top: 1rem;
     margin-right: 0;
     min-width: 150px;
+}
+#memberform_form_wrapper .memberform-inform-button {
+  text-align: center;
 }
 /* MEMBERFORM CALL BACK OR CONTINUE */
 #edit-action,
