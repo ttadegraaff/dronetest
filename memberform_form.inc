@@ -189,7 +189,7 @@ function memberform_form_pre_custom_validate($form, &$form_state) {
     foreach ($values as $key => $value) {
       if (isset($storage['required_fields'][$key])) {
         if (empty($value)) {
-          form_set_error($key, $form[$key]['#title'] . ' is verplicht!');
+          form_set_error($key, 'Dit veld is verplicht!');
         }
       }
     }
@@ -363,6 +363,7 @@ function memberform_modify_form_elements(&$item, &$form_state, $key) {
         $item['#suffix'] = '</div>';
       }
       // Rebuild required functionality.
+      $storage['required_fields'] = array();
       if (!empty($item['#required'])) {
         unset($item['#required']);
         $item['#title'] .= ' <span class="form-required" title="This field is required.">*</span>';

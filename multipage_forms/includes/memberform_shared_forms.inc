@@ -392,11 +392,20 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
     '#markup' => '<p><strong>Let op! De kosten voor betaling via acceptgiro bedragen 6 euro per kwartaal.</strong></p>',
   );
 
-  $form['input']['page_contribution_iban'] = array(
-    '#title' => 'Wat is je bankrekeningnummer?',
-    '#type' => 'textfield',
-    '#required' => TRUE,
-  );
+  if ($storage['values']['contribution']['page_contribution_payment_method'] === 'accept') {
+    $form['input']['page_contribution_iban'] = array(
+      '#title' => 'Wat is je bankrekeningnummer?',
+      '#type' => 'textfield',
+      '#required' => FALSE,
+    );
+  }
+  else {
+    $form['input']['page_contribution_iban'] = array(
+      '#title' => 'Wat is je bankrekeningnummer?',
+      '#type' => 'textfield',
+      '#required' => TRUE,
+    );
+  }
 }
 
 /**
@@ -618,11 +627,13 @@ function memberform_shared_validation($form, &$form_state) {
         $iban = strtoupper($values['page_contribution_iban']);
         $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
         if ($storage['values']['address']['page_address_country'] === 'NL') {
-          if (!memberform_check_iban($iban)) {
-            form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
-          }
-          else {
-            $values['page_contribution_iban'] = $iban;
+          if ($values['page_contribution_payment_method'] === 'auto') {
+            if (!memberform_check_iban($iban)) {
+              form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
+            }
+            else {
+              $values['page_contribution_iban'] = $iban;
+            }
           }
         }
         break;
