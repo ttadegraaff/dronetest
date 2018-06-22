@@ -258,13 +258,11 @@ function memberform_form_submit($form, &$form_state) {
 
   // Process previous, next page.
   $trigger = $form_state['triggering_element']['#name'];
-  $storage['previous_page'] = $storage['current_page'];
 
   switch ($trigger) {
     case 'previous_page':
       if (!empty($nav['previous_page'])) {
         $storage['current_page'] = $nav['previous_page'];
-        $storage['next_page'] = $nav['current_page'];
       }
       break;
 
@@ -291,6 +289,8 @@ function memberform_form_submit($form, &$form_state) {
 
   // Store next and previous pages.
   $nav = memberform_get_nav($storage);
+  $storage['previous_page'] = $nav['previous_page'];
+  $storage['next_page'] = $nav['next_page'];
 
   // Store form data in database.
   memberform_store_form_data($storage);
