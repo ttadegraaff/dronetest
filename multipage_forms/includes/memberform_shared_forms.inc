@@ -392,19 +392,15 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
     '#markup' => '<p><strong>Let op! De kosten voor betaling via acceptgiro bedragen 6 euro per kwartaal.</strong></p>',
   );
 
+  $form['input']['page_contribution_iban'] = array(
+    '#title' => 'Wat is je bankrekeningnummer?',
+    '#type' => 'textfield',
+  );
   if ($storage['values']['contribution']['page_contribution_payment_method'] === 'accept') {
-    $form['input']['page_contribution_iban'] = array(
-      '#title' => 'Wat is je bankrekeningnummer?',
-      '#type' => 'textfield',
-      '#required' => FALSE,
-    );
+    $form['input']['page_contribution_iban']['#required'] = FALSE;
   }
   else {
-    $form['input']['page_contribution_iban'] = array(
-      '#title' => 'Wat is je bankrekeningnummer?',
-      '#type' => 'textfield',
-      '#required' => TRUE,
-    );
+    $form['input']['page_contribution_iban']['#required'] = TRUE;
   }
 }
 
