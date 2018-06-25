@@ -160,10 +160,6 @@ function memberform_shared_page_red_form(&$form, &$form_state) {
     '#type' => 'fieldset',
     '#attributes' => array('class' => array('memberform-input')),
   );
-
-  $form['input']['test'] = array(
-    '#markup' => $storage['membership_type'],
-  );
   if (!empty($storage['membership_type']) && $storage['membership_type'] === 'red_member') {
     $form['input']['page_only_red'] = array(
       '#markup' => '<p>Omdat je nog geen 16 bent wordt je lid van ROOD, de actiefste jongerenorganisatie van Nederland. Zodra je 16 bent kan je ook lid worden van de SP.</p><p>Samen met jongeren gaan we de strijd aan voor een betere wereld. We zijn niet bang om onrecht, discriminatie en ongelijkheid te bestrijden waar dat moet gebeuren.</p>',
