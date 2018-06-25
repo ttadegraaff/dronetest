@@ -60,6 +60,9 @@ function memberform_shared_page_quickfinish_form(&$form, &$form_state) {
     );
   }
   else {
+    $form['input']['intro'] = array(
+      '#markup' => '<p>Komt u er niet uit, klik dan op de bel knop hieronder en we bellen u om uw aanmelding af te ronden.',
+    );
     $form['input']['call_back'] = array(
       '#type' => 'submit',
       '#value' => 'Bel me',
@@ -326,7 +329,7 @@ function memberform_shared_page_address_form(&$form, &$form_state) {
  * Form definition for contribution page.
  */
 function memberform_shared_page_contribution_form(&$form, &$form_state) {
-  $storage = $form_state['storage'];
+  $storage = &$form_state['storage'];
 
   $form['input'] = array(
     '#type' => 'fieldset',
@@ -398,6 +401,7 @@ function memberform_shared_page_contribution_form(&$form, &$form_state) {
   );
   if ($storage['values']['contribution']['page_contribution_payment_method'] === 'accept') {
     $form['input']['page_contribution_iban']['#required'] = FALSE;
+    unset($storage['required_fields']['page_contribution_iban']);
   }
   else {
     $form['input']['page_contribution_iban']['#required'] = TRUE;

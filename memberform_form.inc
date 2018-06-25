@@ -363,7 +363,6 @@ function memberform_modify_form_elements(&$item, &$form_state, $key) {
         $item['#suffix'] = '</div>';
       }
       // Rebuild required functionality.
-      $storage['required_fields'] = array();
       if (!empty($item['#required'])) {
         unset($item['#required']);
         $item['#title'] .= ' <span class="form-required" title="This field is required.">*</span>';
