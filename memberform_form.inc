@@ -176,8 +176,15 @@ if ($storage['current_page'] === $storage['feedback_page']) {
  * Validate function for memberform.
  */
 function memberform_form_pre_custom_validate($form, &$form_state) {
-  $values = $form_state['values'];
+  $values = &$form_state['values'];
   $storage = &$form_state['storage'];
+
+  // Trim string values.
+  foreach ($values as $key => $value) {
+    if (!empty($value) && is_string($value)) {
+      $values[$key] = trim($value);
+    }
+  }
 
   // Implement required fields validation.
   $trigger = $form_state['triggering_element']['#name'];

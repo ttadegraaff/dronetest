@@ -362,7 +362,7 @@ function memberform_overview_table($form_state) {
               case 'textfield':
               case 'emailfield':
               case 'telfield':
-                $rows_tmp[] = array($title, $value);
+                $rows_tmp[] = array($title, check_plain($value));
                 break;
               case 'numberfield':
                 $rows_tmp[] = array($title, str_replace('.', ',', memberform_clean_amount($value)));

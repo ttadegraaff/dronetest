@@ -558,18 +558,48 @@ function memberform_shared_validation($form, &$form_state) {
 
     switch ($storage['current_page']) {
       case 'start':
+        // Validate email.
         if (!empty($values['page_start_email'])) {
           if (!valid_email_address($values['page_start_email'])) {
             form_set_error('page_start_email', 'Geef een geldig e-mailadres op!');
           }
         }
+        // Validate phone.
+        if (!empty($values['page_start_phone'])) {
+          $clean = preg_replace('/[^0-9]/', '', $values['page_start_phone']);
+          if (strlen($clean) < 10) {
+            form_set_error('page_start_phone', 'Geef een geldig telefoonnummer op!');
+          }
+        }
+        // Validate contact information.
         if (empty($values['page_start_email']) && empty($values['page_start_phone'])) {
           form_set_error('page_start_phone', 'Geef tenminste een e-mailadres of telefoonnummer op zodat we je kunnen bereiken.');
+        }
+        // Validate name.
+        $words_in_name = str_word_count($values['page_start_name'], 1);
+        foreach ($words_in_name as $word) {
+          if (strlen($word) < 2) {
+            form_set_error('page_start_name', 'Vul uw volledige naam in, en niet slechts uw voorletter(s)');
+          }
         }
         break;
 
       case 'person_details':
         if (isset($values['page_person_details_birth_date'])) {
+          // Validate names.
+          $name_types = array(
+            'first' => 'voornaam',
+            'middle' => 'tussenvoegsel',
+            'last' => 'achternaam',);
+          foreach ($name_types as $name_type => $name_type_display) {
+            $words_in_name = str_word_count($values['page_person_details_' . $name_type . '_name'], 1);
+            foreach ($words_in_name as $word) {
+              if (strlen($word) < 2) {
+                form_set_error('page_person_details_' . $name_type . '_name', 'Vul uw volledige ' . $name_type_display . ' in, en niet slechts letter(s)');
+              }
+            }
+          }
+          // Validate age.
           $age = memberform_get_age($values['page_person_details_birth_date']);
           if ($age < 14) {
             form_set_error('page_person_details_birth_date', 'Je bent jonger dan 14 jaar, en kunt daarom nog geen lid worden van de SP of ROOD.');
@@ -587,7 +617,15 @@ function memberform_shared_validation($form, &$form_state) {
           ),
           'house_number' => array(
             'regex' => '/^[1-9][0-9]*$/',
-            'message' => 'Vul een geldig huisnummer in',
+            'message' => 'Vul een geldig huisnummer in, een toevoeging kan in het veld hieronder',
+          ),
+          'street' => array(
+            'regex' => '/[a-zA-Z]{2}/',
+            'message' => 'Vul een geldige straatnaam in',
+          ),
+          'locality' => array(
+            'regex' => '/[a-zA-Z]{2}/',
+            'message' => 'Vul een geldige plaatsnaam in',
           ),
         );
         // Do no check International postal codes.
@@ -595,11 +633,11 @@ function memberform_shared_validation($form, &$form_state) {
           unset($checks['postal_code']);
         }
         foreach ($checks as $key => $check) {
-          $values['page_address_' . $key] = str_replace(' ', '', $values['page_address_' . $key]);
-          if (!empty($values['page_address_' . $key])) {
-            if (!preg_match($check['regex'], $values['page_address_' . $key])) {
-              form_set_error('page_address_' . $key, $check['message']);
-            }
+          if (in_array($key, array('postal_code'))) {
+            $values['page_address_' . $key] = str_replace(' ', '', $values['page_address_' . $key]);
+          }
+          if (!preg_match($check['regex'], $values['page_address_' . $key])) {
+            form_set_error('page_address_' . $key, $check['message']);
           }
         }
         break;
@@ -623,7 +661,7 @@ function memberform_shared_validation($form, &$form_state) {
         $iban = strtoupper($values['page_contribution_iban']);
         $iban = preg_replace('/[^0-9A-Z]/', '', $iban);
         if ($storage['values']['address']['page_address_country'] === 'NL') {
-          if ($values['page_contribution_payment_method'] === 'auto') {
+          if (!empty($values['page_contribution_iban'])) {
             if (!memberform_check_iban($iban)) {
               form_set_error('page_contribution_iban', 'Vul een geldig iban nummer in.');
             }

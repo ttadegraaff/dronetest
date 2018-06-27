@@ -284,7 +284,7 @@ function memberform_submission_details($id) {
 
       list($key, $value) = memberform_friendly_field_data($key, $value);
       if ($key) {
-        $rows[] = array('key' => $key, 'value' => $value);
+        $rows[] = array('key' => $key, 'value' => check_plain($value));
       }
     }
 
@@ -359,7 +359,7 @@ function memberform_gifts_view($action = NULL, $id = NULL) {
     $data[] = array(
       'id' => $g->id,
       'image' => $image_styled,
-      'name' => $g->name,
+      'name' => check_plain($g->name),
       'type' => memberform_membership_description($g->membership_type, TRUE),
       'show_website' => ($g->show_website ? 'ja' : 'nee'),
       'options' =>
