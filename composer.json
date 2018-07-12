@@ -8,5 +8,8 @@
       "email": "tdgraaff@sp.nl"
     }
   ],
-  "license": "GPL-2.0"
+  "license": "GPL-2.0",
+  "require-dev": {
+    "codeception/codeception": "^2.4"
+  }
 }
