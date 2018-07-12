@@ -8,6 +8,6 @@ actor: AcceptanceTester
 modules:
     enabled:
         - WebDriver:
-            url: https://cividev.sp.nl/feature/1553
+            url: 'https://%CIVIDEV_USER%:%CIVIDEV_PASS%@cividev.sp.nl/feature/1553'
             browser: chrome
         - \Helper\Acceptance
