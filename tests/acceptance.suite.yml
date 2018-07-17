@@ -9,5 +9,7 @@ modules:
     enabled:
         - WebDriver:
             url: 'https://%CIVIDEV_USER%:%CIVIDEV_PASS%@cividev.sp.nl/feature/1553'
+            host: 'selenium'
+            port: 4444
             browser: chrome
         - \Helper\Acceptance

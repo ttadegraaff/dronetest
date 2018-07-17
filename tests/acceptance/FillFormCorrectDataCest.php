@@ -1,6 +1,5 @@
 <?php
 
-
 class FillFormCorrectDataCest
 {
   public function _before(AcceptanceTester $I)

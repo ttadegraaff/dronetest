@@ -1,0 +1,37 @@
+workspace:
+  base: /var/www/html
+  path: web/modules/custom/
+
+pipeline:
+  restore-cache:
+    image: drillster/drone-volume-cache
+    restore: true
+    mount:
+      - ./vendor
+    volumes:
+      - /tmp/vendor_memberform:/vendor
+
+
+  test:
+    image: composer:1.6.5
+    commands:
+#      - ls -allh /var/www/html
+#      - exit 1
+#      - wget -O drush.phar https://github.com/drush-ops/drush-launcher/releases/download/0.6.0/drush.phar
+#      - php drush.phar --root=/var/www/html site-install
+      - export CIVIDEV_USER=$CIVIDEV_USER
+      - export CIVIDEV_PASS=$CIVIDEV_PASS
+      - composer install
+      - vendor/bin/codecept run
+    secrets: [ cividev_user, cividev_pass ]
+
+  rebuild-cache:
+    image: drillster/drone-volume-cache
+    rebuild: true
+    mount:
+      - ./vendor
+    volumes:
+      - /tmp/vendor_memberform:/vendor
+services:
+  selenium:
+   image: selenium/standalone-chrome
